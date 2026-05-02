@@ -104,6 +104,10 @@ BaizePaw/
 | `calculator` | `计算 2+2` | 数学计算 |
 | `file_read` | `读取 config.py` | 读取本地文件 |
 | `file_write` | `写入 test.txt:内容` | 写入文件 |
+| `find_file` | `查找 *.py` | 搜索文件名 |
+| `grep_file` | `在 src 搜索 xxx` | 搜索文件内容，支持正则 |
+| `delete_file` | `删除 test.txt` | 删除文件 |
+| `move_file` | `移动 old.txt -> new.txt` | 移动/重命名文件 |
 | `search` | `搜索 天气` | 网络搜索（待实现）|
 
 ## 测试
@@ -124,12 +128,15 @@ PYTHONPATH=. pytest -v
 
 ```
 docs/
+├── development-process.md   # 开发流程总纲
 ├── devlog/                 # 开发日志
+│   ├── TODO.md             # 待办想法
 │   └── v0.1-core-framework.md   # v0.1 开发过程
 ├── adr/                    # 架构决策记录
 │   ├── 001-why-not-langchain.md  # 为什么不用 LangChain
 │   ├── 002-custom-tool-format.md  # 为什么自创工具格式
-│   └── 003-why-deepseek.md       # 为什么选 DeepSeek
+│   ├── 003-why-deepseek.md       # 为什么选 DeepSeek
+│   └── 004-grep-tool.md          # grep 工具方案
 └── plans/                  # 实现计划
     └── 2026-05-02-baizepaw-core-v0.1.md
 ```

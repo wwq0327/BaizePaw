@@ -65,11 +65,11 @@ src/agent.py:14:    def run(self, user_input: str) -> str:
 
 ## 实现清单
 
-- [ ] `file_ops.py` 添加 `grep_file_tool` 函数
-- [ ] `dispatcher.py` 注册 `grep_file`
-- [ ] `agent.py` 更新参数映射
-- [ ] `llm_client.py` 更新 system prompt
-- [ ] 测试验证
+- [x] `file_ops.py` 添加 `grep_file_tool` 函数
+- [x] `dispatcher.py` 注册 `grep_file`
+- [x] `agent.py` 更新参数映射
+- [x] `llm_client.py` 更新 system prompt
+- [x] 测试验证
 
 ---
 
