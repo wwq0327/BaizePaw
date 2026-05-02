@@ -33,10 +33,8 @@ cd /path/to/your/code
 
 ### 2. 配置 API Key
 
-DeepSeek API Key 设置到环境变量：
-
 ```bash
-export DEEPSEEK_API_KEY="your-api-key"
+export LLM_API_KEY="your-api-key"
 ```
 
 或创建 `.env` 文件：
@@ -44,6 +42,7 @@ export DEEPSEEK_API_KEY="your-api-key"
 ```bash
 cp .env.example .env
 # 编辑 .env 填入你的 API Key
+# 支持 LLM_API_KEY、SILICONFLOW_API_KEY、DEEPSEEK_API_KEY
 ```
 
 ### 3. 安装依赖
@@ -73,10 +72,10 @@ You: 你好
 BaizePaw: 你好！我是白泽...
 
 You: 计算 2+2
-BaizePaw: 【calculator】执行结果：4
+BaizePaw: 2 + 2 = 4
 
 You: 读取 config.py
-BaizePaw: 【file_read】执行结果：import os...
+BaizePaw: config.py 的内容是...
 ```
 
 ## 项目结构
@@ -85,8 +84,9 @@ BaizePaw: 【file_read】执行结果：import os...
 BaizePaw/
 ├── src/
 │   ├── agent.py          # Agent 核心循环
-│   ├── llm_client.py    # DeepSeek API 调用
+│   ├── llm_client.py    # LLM API 调用
 │   ├── chat_history.py  # 对话历史管理
+│   ├── prompts.py       # System prompt
 │   ├── shell.py         # 命令行交互
 │   └── tools/
 │       ├── calculator.py    # 计算器
@@ -119,7 +119,7 @@ PYTHONPATH=. pytest -v
 ## 技术栈
 
 - Python 3.12
-- DeepSeek API (deepseek-v4-flash)
+- 硅基流动 / DeepSeek API
 - requests + python-dotenv
 
 ## 学习资源
@@ -137,8 +137,7 @@ docs/
 │   ├── 002-custom-tool-format.md  # 为什么自创工具格式
 │   ├── 003-why-deepseek.md       # 为什么选 DeepSeek
 │   └── 004-grep-tool.md          # grep 工具方案
-└── plans/                  # 实现计划
-    └── 2026-05-02-baizepaw-core-v0.1.md
+└── superpowers/            # 高阶功能计划
 ```
 
 ### 亮点

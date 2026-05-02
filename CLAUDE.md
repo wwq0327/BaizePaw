@@ -6,15 +6,19 @@
 ## 技术栈
 - Python 3.x
 - 共享虚拟环境：`my/.venv`
-- API：硅基流动（国内 LLM API）
+- API：硅基流动（国内 LLM API），兼容 DeepSeek 官方 API
+- 环境变量：`LLM_API_KEY`（支持回退 `SILICONFLOW_API_KEY` / `DEEPSEEK_API_KEY`）
 - 依赖：requests、python-dotenv
 
 ## 启动方式
 ```bash
+# 确保 LLM_API_KEY 已配置（.env 或环境变量）
 cd BaizePaw
 source ../.venv/bin/activate
 python main.py
 ```
+
+或直接 `./baize`
 
 ## 测试
 ```bash

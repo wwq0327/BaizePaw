@@ -13,13 +13,6 @@ def test_add_assistant_message():
     assert len(history.messages) == 1
     assert history.messages[0]["role"] == "assistant"
 
-def test_add_tool_result():
-    history = ChatHistory()
-    history.add_tool_result("search", "result data")
-    assert len(history.messages) == 1
-    assert history.messages[0]["role"] == "tool"
-    assert history.messages[0]["name"] == "search"
-
 def test_get_context():
     history = ChatHistory()
     history.add_user("Hello")

@@ -54,12 +54,7 @@ class AgentRunner:
                 # 执行工具
                 tool_result = self.dispatcher.dispatch(tool_name, params)
 
-                # 第一次工具调用：直接返回结果，不继续对话
-                if i == 0:
-                    self.history.add_assistant(str(tool_result))
-                    return f"【{tool_name}】执行结果：{tool_result}"
-
-                # 后续工具调用：把结果加入上下文，让 LLM 继续
+                # 工具结果注入上下文，让 LLM 继续处理
                 result_message = f"工具「{tool_name}」执行结果：{tool_result}"
                 self.history.add_user(result_message)
                 continue

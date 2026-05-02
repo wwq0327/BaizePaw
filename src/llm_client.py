@@ -1,48 +1,53 @@
+import time
 import requests
-from typing import List, Dict
+from typing import List, Dict, Optional
+from .prompts import SYSTEM_PROMPT
 
-# System prompt that instructs the LLM to use tools
-SYSTEM_PROMPT = """你叫白泽（BaizePaw），是一个个人助手。
-
-当你需要完成具体任务时，请使用以下工具格式：
-- 计算：使用【tool】calculator【/tool】后跟数学表达式
-- 搜索文件：使用【tool】find_file【/tool】后跟文件名和目录
-- 搜索内容：使用【tool】grep_file【/tool】后跟搜索内容和目录，支持正则表达式
-- 读取文件：使用【tool】file_read【/tool】后跟文件路径
-- 写入文件：使用【tool】file_write【/tool】后跟文件路径和内容
-- 删除文件：使用【tool】delete_file【/tool】后跟文件路径
-- 移动文件：使用【tool】move_file【/tool】后跟源路径和目标路径
-
-格式示例：
-「帮我计算 2+2」→ 【tool】calculator【/tool】2+2
-「搜索 config.py」→ 【tool】find_file【/tool】config.py
-「在 src 目录搜索 AgentRunner」→ 【tool】grep_file【/tool】AgentRunner in src
-「读取 config.py」→ 【tool】file_read【/tool】config.py
-「删除 test.txt」→ 【tool】delete_file【/tool】test.txt
-「移动 old.txt -> new.txt」→ 【tool】move_file【/tool】old.txt -> new.txt
-
-如果不需要工具，直接回答。"""
 
 class LLMClient:
-    def __init__(self, api_key: str = None, model: str = None, base_url: str = None):
-        from config import DEEPSEEK_API_KEY, DEEPSEEK_API_BASE, MODEL_NAME
-        self.api_key = api_key or DEEPSEEK_API_KEY
-        self.model = model or MODEL_NAME
-        self.base_url = base_url or DEEPSEEK_API_BASE
+    def __init__(self, api_key: str = None, model: str = None, base_url: str = None, max_retries: int = 2):
+        from config import LLM_API_KEY, LLM_API_BASE, LLM_MODEL_NAME
+        self.api_key = api_key or LLM_API_KEY
+        self.model = model or LLM_MODEL_NAME
+        self.base_url = base_url or LLM_API_BASE
+        self.max_retries = max_retries
 
-    def chat(self, messages: List[Dict[str, str]]) -> str:
+    def chat(self, messages: List[Dict[str, str]], timeout: int = 30) -> str:
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
-        # Insert system prompt at the beginning
         all_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
-        payload = {
-            "model": self.model,
-            "messages": all_messages
-        }
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+        payload = {"model": self.model, "messages": all_messages}
+
+        last_error = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                response = requests.post(url, json=payload, headers=headers, timeout=timeout)
+                response.raise_for_status()
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+
+            except requests.exceptions.Timeout:
+                last_error = "API 请求超时，请检查网络连接"
+            except requests.exceptions.ConnectionError:
+                last_error = f"无法连接到 API 服务器：{self.base_url}"
+            except requests.exceptions.HTTPError as e:
+                status = e.response.status_code
+                if status == 401:
+                    last_error = "API Key 认证失败，请检查 LLM_API_KEY"
+                elif status == 429:
+                    last_error = "API 请求过于频繁，请稍后重试"
+                else:
+                    last_error = f"API 返回错误 {status}：{e.response.text[:200]}"
+                break  # 认证和限流错误不重试
+            except (KeyError, IndexError, ValueError) as e:
+                last_error = f"API 返回格式异常：{e}"
+                break  # 格式错误不重试
+
+            if attempt < self.max_retries:
+                wait = 2 ** attempt
+                time.sleep(wait)
+
+        return f"Error: {last_error}"
