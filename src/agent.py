@@ -30,8 +30,8 @@ class AgentRunner:
                     params = {"expr": tool_params} if tool_params else {}
                 elif tool_name in ("file_read", "delete_file"):
                     params = {"path": tool_params} if tool_params else {}
-                elif tool_name == "find_file":
-                    # find_file: "pattern" 或 "pattern in path"
+                elif tool_name in ("find_file", "grep_file"):
+                    # find_file / grep_file: "pattern" 或 "pattern in path"
                     parts = tool_params.split(" in ", 1)
                     if len(parts) > 1:
                         params = {"pattern": parts[0].strip(), "path": parts[1].strip()}

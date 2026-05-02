@@ -1,7 +1,7 @@
 from typing import Any, Dict
 from .calculator import calc_tool
 from .search import search_tool
-from .file_ops import read_file_tool, write_file_tool, find_file_tool, delete_file_tool, move_file_tool
+from .file_ops import read_file_tool, write_file_tool, find_file_tool, delete_file_tool, move_file_tool, grep_file_tool
 
 class ToolDispatcher:
     def __init__(self):
@@ -13,6 +13,7 @@ class ToolDispatcher:
             "find_file": find_file_tool,
             "delete_file": delete_file_tool,
             "move_file": move_file_tool,
+            "grep_file": grep_file_tool,
         }
 
     def dispatch(self, tool_name: str, params: Dict[str, Any]) -> str:
