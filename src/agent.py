@@ -18,15 +18,15 @@ class AgentRunner:
             response = self.llm.chat(self.history.get_context())
 
             # 检查是否包含工具调用
-            tool_match = re.search(r"【tool】(\w+)【/tool】", response)
+            # 匹配格式：【tool】toolname【/tool】参数
+            tool_match = re.search(r"【tool】(\w+)【/tool】(.+?)(?=【|$)", response, re.DOTALL)
             if tool_match:
                 tool_name = tool_match.group(1)
-                # 从响应中提取工具参数（简化版：直接解析【tool】后的内容）
+                tool_params = tool_match.group(2).strip()
                 self.history.add_assistant(response)
 
                 # 解析参数并执行
-                # 这里简化处理，实际可以从 response 中解析参数
-                tool_result = self.dispatcher.dispatch(tool_name, {})
+                tool_result = self.dispatcher.dispatch(tool_name, {"expr": tool_params} if tool_params else {})
                 self.history.add_tool_result(tool_name, tool_result)
                 continue
 
