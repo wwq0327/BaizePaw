@@ -28,8 +28,22 @@ class AgentRunner:
                 # 根据工具类型构建参数
                 if tool_name == "calculator":
                     params = {"expr": tool_params} if tool_params else {}
-                elif tool_name in ("file_read", "search"):
+                elif tool_name in ("file_read", "delete_file"):
                     params = {"path": tool_params} if tool_params else {}
+                elif tool_name == "find_file":
+                    # find_file: "pattern" 或 "pattern in path"
+                    parts = tool_params.split(" in ", 1)
+                    if len(parts) > 1:
+                        params = {"pattern": parts[0].strip(), "path": parts[1].strip()}
+                    else:
+                        params = {"pattern": tool_params}
+                elif tool_name == "move_file":
+                    # move_file: "src -> dst"
+                    parts = tool_params.split("->", 1)
+                    if len(parts) > 1:
+                        params = {"src": parts[0].strip(), "dst": parts[1].strip()}
+                    else:
+                        params = {"src": tool_params, "dst": tool_params}
                 elif tool_name == "file_write":
                     # file_write 需要 path 和 content，从 tool_params 解析
                     parts = tool_params.split(":", 1)

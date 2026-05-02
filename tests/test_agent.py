@@ -18,7 +18,7 @@ def test_tool_call_loop():
         mock_client = MagicMock()
         # 第一次返回工具调用，第二次返回最终结果
         mock_client.chat.side_effect = [
-            "Let me calculate: 【tool】calculator【/tool】\n表达式：2+2",
+            "【tool】calculator【/tool】2+2",
             "2 + 2 = 4"
         ]
         MockLLM.return_value = mock_client
