@@ -111,6 +111,28 @@ PYTHONPATH=. pytest -v
 - DeepSeek API (deepseek-v4-flash)
 - requests + python-dotenv
 
+## 学习资源
+
+本项目记录了从 0 搭建 Agent 的完整过程：
+
+```
+docs/
+├── devlog/                 # 开发日志
+│   └── v0.1-core-framework.md   # v0.1 开发过程
+├── adr/                    # 架构决策记录
+│   ├── 001-why-not-langchain.md  # 为什么不用 LangChain
+│   ├── 002-custom-tool-format.md  # 为什么自创工具格式
+│   └── 003-why-deepseek.md       # 为什么选 DeepSeek
+└── plans/                  # 实现计划
+    └── 2026-05-02-baizepaw-core-v0.1.md
+```
+
+### 亮点
+
+- **没有黑盒**：每一行代码都知道在干什么
+- **问题驱动**：踩过的坑、解决方案都有记录
+- **循序渐进**：从简单开始，逐步加功能
+
 ## 许可证
 
 MIT
