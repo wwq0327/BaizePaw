@@ -104,6 +104,9 @@ BaizePaw/
 | `calculator` | `计算 2+2` | 数学计算 |
 | `file_read` | `读取 config.py` | 读取本地文件 |
 | `file_write` | `写入 test.txt:内容` | 写入文件 |
+| `file_append` | `追加 test.txt:内容` | 追加内容到文件 |
+| `copy_file` | `复制 a.txt -> b.txt` | 复制文件 |
+| `list_dir` | `查看目录` | 列出目录内容 |
 | `find_file` | `查找 *.py` | 搜索文件名 |
 | `grep_file` | `在 src 搜索 xxx` | 搜索文件内容，支持正则 |
 | `delete_file` | `删除 test.txt` | 删除文件 |

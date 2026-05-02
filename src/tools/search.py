@@ -1,4 +1,23 @@
-def search_tool(query: str) -> str:
+from .tool_base import Tool
+
+
+def _search_impl(query: str) -> str:
     """网络搜索（暂未实现）"""
-    # TODO: 接入真实搜索 API（如 SearXNG、SerpAPI 等）
     return f"Search not implemented yet. Query: {query}"
+
+
+search_tool = Tool(
+    name="search",
+    description="搜索网络信息（暂未实现）",
+    parameters={
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "搜索关键词",
+            }
+        },
+        "required": ["query"],
+    },
+    fn=_search_impl,
+)

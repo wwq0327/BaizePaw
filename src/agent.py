@@ -1,66 +1,86 @@
+import json
 import re
 from config import MAX_LOOP
 from .llm_client import LLMClient
 from .chat_history import ChatHistory
 from .tools.dispatcher import ToolDispatcher
 
+
 class AgentRunner:
     def __init__(self):
-        self.llm = LLMClient()
-        self.history = ChatHistory()
         self.dispatcher = ToolDispatcher()
+        system_prompt = self.dispatcher.generate_system_prompt()
+        self.llm = LLMClient(system_prompt=system_prompt)
+        self.history = ChatHistory()
 
     def run(self, user_input: str) -> str:
         self.history.add_user(user_input)
 
         for i in range(MAX_LOOP):
-            # 调用 LLM
             response = self.llm.chat(self.history.get_context())
 
-            # 检查是否包含工具调用
             # 匹配格式：【tool】toolname【/tool】参数
-            tool_match = re.search(r"【tool】(\w+)【/tool】(.+?)(?=【|$)", response, re.DOTALL)
+            tool_match = re.search(
+                r"【tool】(\w+)【/tool】(.+?)(?=【|$)", response, re.DOTALL
+            )
             if tool_match:
                 tool_name = tool_match.group(1)
-                tool_params = tool_match.group(2).strip()
+                tool_params_str = tool_match.group(2).strip()
                 self.history.add_assistant(response)
 
-                # 根据工具类型构建参数
-                if tool_name == "calculator":
-                    params = {"expr": tool_params} if tool_params else {}
-                elif tool_name in ("file_read", "delete_file"):
-                    params = {"path": tool_params} if tool_params else {}
-                elif tool_name in ("find_file", "grep_file"):
-                    # find_file / grep_file: "pattern" 或 "pattern in path"
-                    parts = tool_params.split(" in ", 1)
-                    if len(parts) > 1:
-                        params = {"pattern": parts[0].strip(), "path": parts[1].strip()}
-                    else:
-                        params = {"pattern": tool_params}
-                elif tool_name == "move_file":
-                    # move_file: "src -> dst"
-                    parts = tool_params.split("->", 1)
-                    if len(parts) > 1:
-                        params = {"src": parts[0].strip(), "dst": parts[1].strip()}
-                    else:
-                        params = {"src": tool_params, "dst": tool_params}
-                elif tool_name == "file_write":
-                    # file_write 需要 path 和 content，从 tool_params 解析
-                    parts = tool_params.split(":", 1)
-                    params = {"path": parts[0], "content": parts[1]} if len(parts) > 1 else {"path": tool_params}
-                else:
-                    params = {"expr": tool_params} if tool_params else {}
+                # 优先 JSON 解析，失败则走旧格式兼容
+                try:
+                    params = json.loads(tool_params_str)
+                    if not isinstance(params, dict):
+                        raise ValueError("not a dict")
+                except (json.JSONDecodeError, ValueError):
+                    params = self._legacy_parse_params(tool_name, tool_params_str)
 
-                # 执行工具
                 tool_result = self.dispatcher.dispatch(tool_name, params)
-
-                # 工具结果注入上下文，让 LLM 继续处理
                 result_message = f"工具「{tool_name}」执行结果：{tool_result}"
                 self.history.add_user(result_message)
                 continue
 
-            # 没有工具调用，返回结果
             self.history.add_assistant(response)
             return response
 
         return "Maximum loops exceeded"
+
+    @staticmethod
+    def _legacy_parse_params(tool_name: str, params_str: str) -> dict:
+        """旧格式参数解析（兼容非 JSON 调用）"""
+        if not params_str:
+            return {}
+        if tool_name == "calculator":
+            return {"expr": params_str}
+        elif tool_name in (
+            "file_read",
+            "delete_file",
+            "list_dir",
+        ):
+            return {"path": params_str}
+        elif tool_name in ("find_file", "grep_file"):
+            parts = params_str.split(" in ", 1)
+            if len(parts) > 1:
+                return {
+                    "pattern": parts[0].strip(),
+                    "path": parts[1].strip(),
+                }
+            return {"pattern": params_str}
+        elif tool_name in ("move_file", "copy_file"):
+            parts = params_str.split("->", 1)
+            if len(parts) > 1:
+                return {"src": parts[0].strip(), "dst": parts[1].strip()}
+            return {"src": params_str, "dst": params_str}
+        elif tool_name in ("file_write", "file_append"):
+            parts = params_str.split(":", 1)
+            if len(parts) > 1:
+                return {
+                    "path": parts[0].strip(),
+                    "content": parts[1].strip(),
+                }
+            return {"path": params_str}
+        elif tool_name == "search":
+            return {"query": params_str}
+        else:
+            return {"input": params_str}
