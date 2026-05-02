@@ -26,7 +26,6 @@ class AgentRunner:
             if tool_match:
                 tool_name = tool_match.group(1)
                 tool_params_str = tool_match.group(2).strip()
-                self.history.add_assistant(response)
 
                 # 优先 JSON 解析，失败则走旧格式兼容
                 try:
@@ -36,9 +35,15 @@ class AgentRunner:
                 except (json.JSONDecodeError, ValueError):
                     params = self._legacy_parse_params(tool_name, tool_params_str)
 
+                # 记录 assistant 消息（含 tool_calls）
+                args_json = json.dumps(params, ensure_ascii=False)
+                tool_call_id = self.history.add_tool_call(
+                    response, tool_name, args_json
+                )
+
+                # 执行工具，结果用 tool role 单独发送
                 tool_result = self.dispatcher.dispatch(tool_name, params)
-                result_message = f"工具「{tool_name}」执行结果：{tool_result}"
-                self.history.add_user(result_message)
+                self.history.add_tool_result(tool_call_id, tool_name, str(tool_result))
                 continue
 
             self.history.add_assistant(response)
