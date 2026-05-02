@@ -11,8 +11,16 @@
 
 ## 启动方式
 ```bash
+cd BaizePaw
 source ../.venv/bin/activate
 python main.py
+```
+
+## 测试
+```bash
+cd BaizePaw
+source ../.venv/bin/activate
+PYTHONPATH=. pytest -v
 ```
 
 ## 验证方式
