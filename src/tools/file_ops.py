@@ -1,14 +1,6 @@
 import os
 import subprocess
 
-# 安全边界：限制文件操作在项目根目录内
-SAFE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-
-def _is_safe_path(path: str) -> bool:
-    resolved = os.path.abspath(os.path.normpath(os.path.expanduser(path)))
-    return resolved.startswith(SAFE_ROOT)
-
 
 def read_file_tool(path: str) -> str:
     if not os.path.exists(path):
@@ -18,8 +10,6 @@ def read_file_tool(path: str) -> str:
 
 
 def write_file_tool(path: str, content: str) -> str:
-    if not _is_safe_path(path):
-        return f"SecurityError: path outside project root: {path}"
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
@@ -45,8 +35,6 @@ def delete_file_tool(path: str) -> str:
     """删除指定文件"""
     if not os.path.exists(path):
         return f"File not found: {path}"
-    if not _is_safe_path(path):
-        return f"SecurityError: path outside project root: {path}"
     cmd = ["rm", path]
     print(f"$ {' '.join(cmd)}")
     try:
@@ -60,8 +48,6 @@ def move_file_tool(src: str, dst: str) -> str:
     """移动或重命名文件"""
     if not os.path.exists(src):
         return f"Source file not found: {src}"
-    if not _is_safe_path(src) or not _is_safe_path(dst):
-        return f"SecurityError: path outside project root: {src} -> {dst}"
     cmd = ["mv", src, dst]
     print(f"$ {' '.join(cmd)}")
     try:

@@ -6,7 +6,7 @@
 ## 技术栈
 - Python 3.x
 - 共享虚拟环境：`my/.venv`
-- API：硅基流动（国内 LLM API），兼容 DeepSeek 官方 API
+- API：DeepSeek（Anthropic 兼容接口）
 - 环境变量：`LLM_API_KEY`（支持回退 `SILICONFLOW_API_KEY` / `DEEPSEEK_API_KEY`）
 - 依赖：requests、python-dotenv
 
