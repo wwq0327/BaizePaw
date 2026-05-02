@@ -55,7 +55,14 @@ pip install -r requirements.txt
 
 ### 4. 运行
 
+**方式一：一键启动（推荐）**
 ```bash
+./baize
+```
+
+**方式二：手动启动**
+```bash
+source ../.venv/bin/activate
 python main.py
 ```
 
