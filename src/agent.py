@@ -13,7 +13,7 @@ class AgentRunner:
     def run(self, user_input: str) -> str:
         self.history.add_user(user_input)
 
-        for _ in range(MAX_LOOP):
+        for i in range(MAX_LOOP):
             # 调用 LLM
             response = self.llm.chat(self.history.get_context())
 
@@ -25,9 +25,29 @@ class AgentRunner:
                 tool_params = tool_match.group(2).strip()
                 self.history.add_assistant(response)
 
-                # 解析参数并执行
-                tool_result = self.dispatcher.dispatch(tool_name, {"expr": tool_params} if tool_params else {})
-                self.history.add_tool_result(tool_name, tool_result)
+                # 根据工具类型构建参数
+                if tool_name == "calculator":
+                    params = {"expr": tool_params} if tool_params else {}
+                elif tool_name in ("file_read", "search"):
+                    params = {"path": tool_params} if tool_params else {}
+                elif tool_name == "file_write":
+                    # file_write 需要 path 和 content，从 tool_params 解析
+                    parts = tool_params.split(":", 1)
+                    params = {"path": parts[0], "content": parts[1]} if len(parts) > 1 else {"path": tool_params}
+                else:
+                    params = {"expr": tool_params} if tool_params else {}
+
+                # 执行工具
+                tool_result = self.dispatcher.dispatch(tool_name, params)
+
+                # 第一次工具调用：直接返回结果，不继续对话
+                if i == 0:
+                    self.history.add_assistant(str(tool_result))
+                    return f"【{tool_name}】执行结果：{tool_result}"
+
+                # 后续工具调用：把结果加入上下文，让 LLM 继续
+                result_message = f"工具「{tool_name}」执行结果：{tool_result}"
+                self.history.add_user(result_message)
                 continue
 
             # 没有工具调用，返回结果
