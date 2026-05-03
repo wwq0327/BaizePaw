@@ -1,14 +1,14 @@
 import readline
 import os
-from .agent import AgentRunner
+from .conversation import Conversation
+from .event import DoneEvent, ErrorEvent, ToolEvent
 
-# 持久化命令历史文件
 HISTORY_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".shell_history")
 
 
 class Shell:
     def __init__(self):
-        self.agent = AgentRunner()
+        self.conversation = Conversation()
         self.running = True
         self._setup_history()
 
@@ -26,8 +26,9 @@ class Shell:
             pass
 
     def start(self):
-        print("BaizePaw v0.1 - Your personal agent (type 'quit' to exit)")
+        print("BaizePaw v0.2 - Your personal agent (type 'quit' to exit)")
         print("-" * 40)
+        self.conversation.start()
 
         while self.running:
             try:
@@ -39,13 +40,28 @@ class Shell:
                     self.running = False
                     continue
 
-                response = self.agent.run(user_input)
-                print(f"\nBaizePaw: {response}")
+                readline.add_history(user_input)
+                self._save_history()
+                self.conversation.submit(user_input)
+
+                # poll 循环，直到收到 DoneEvent 或 ErrorEvent
+                while True:
+                    events = self.conversation.poll()
+                    for ev in events:
+                        if isinstance(ev, ToolEvent):
+                            print(f"  [tool] {ev.tool_name} → {ev.result}")
+                        elif isinstance(ev, DoneEvent):
+                            print(f"\nBaizePaw: {ev.content}")
+                        elif isinstance(ev, ErrorEvent):
+                            print(f"\nError: {ev.message}")
+                    # DoneEvent 或 ErrorEvent 表示一轮结束
+                    if events and any(isinstance(e, (DoneEvent, ErrorEvent)) for e in events):
+                        break
 
             except KeyboardInterrupt:
                 print("\n\nGoodbye!")
                 self.running = False
             except Exception as e:
                 print(f"Error: {e}")
-            finally:
-                self._save_history()
+
+        self.conversation.stop()

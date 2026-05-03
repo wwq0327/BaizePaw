@@ -4,6 +4,15 @@
 
 ---
 
+## 当前进行
+
+- [ ] 架构重设计：单体力拆三层，Core 改生成器，引入 Pipeline/Plugin，TUI with Textual
+  - ADR-007（输入排队，已整合）
+  - ADR-008（系统事件层，已通过）
+  - ADR-009（Core+Pipeline+App，已通过）
+  - ADR-010（TUI，已通过）
+  - Plan：`docs/plans/2026-05-03-architecture-redesign.md`
+
 ## 功能建议
 
 - [ ] 记忆模块：记住用户偏好
@@ -19,6 +28,7 @@
 - [x] 复制文件工具
 - [x] 查看目录工具
 - [x] 追加写入工具
+- [x] 输入排队
 
 ## 已完成
 
@@ -27,12 +37,11 @@
 - [x] 文件读写工具
 - [x] find/delete/move 文件工具
 - [x] grep 文件内容搜索工具
-- [x] 修复配置系统（变量名、API Base、模型名同步）
-- [x] 修复工具调用逻辑（首次工具调用不再直接返回）
-- [x] 清理 ChatHistory 死代码
-- [x] 文件操作添加安全边界（限制在项目根目录内）
-- [x] System Prompt 分离到独立文件
-- [x] 修正 tools/__init__.py 导出
-- [x] 设计文档移入 docs/
+- [x] 工具封装重构（Tool 对象、JSON 参数解析、自动生成 Prompt）
+- [x] 消息封装（UserMessage / ToolCallMessage / ToolResultMessage）
+- [x] 工具结果 role 分离（user vs tool）
+- [x] 删除循环上限
+- [x] 配置系统修正
+- [x] 工具系统各 bug 修复
 
 ---

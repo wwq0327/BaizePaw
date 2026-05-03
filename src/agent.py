@@ -1,6 +1,6 @@
+# DEPRECATED: Use src.core.Core instead. This module will be removed in v0.2.
 import json
 import re
-from config import MAX_LOOP
 from .llm_client import LLMClient
 from .chat_history import ChatHistory
 from .tools.dispatcher import ToolDispatcher
@@ -16,7 +16,7 @@ class AgentRunner:
     def run(self, user_input: str) -> str:
         self.history.add_user(user_input)
 
-        for i in range(MAX_LOOP):
+        while True:
             response = self.llm.chat(self.history.get_context())
 
             # 匹配格式：【tool】toolname【/tool】参数
@@ -48,8 +48,6 @@ class AgentRunner:
 
             self.history.add_assistant(response)
             return response
-
-        return "Maximum loops exceeded"
 
     @staticmethod
     def _legacy_parse_params(tool_name: str, params_str: str) -> dict:

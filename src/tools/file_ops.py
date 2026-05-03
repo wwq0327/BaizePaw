@@ -29,17 +29,15 @@ def _copy_file(src: str, dst: str) -> str:
     if not os.path.exists(src):
         return f"Source file not found: {src}"
     cmd = ["cp", src, dst]
-    print(f"$ {' '.join(cmd)}")
     try:
         subprocess.run(cmd, check=True)
-        return f"Copied: {src} → {dst}"
+        return f"$ cp {src} {dst}\nCopied: {src} → {dst}"
     except subprocess.CalledProcessError:
         return f"Failed to copy: {src} → {dst}"
 
 
 def _list_dir(path: str = ".") -> str:
     cmd = ["ls", "-la", path]
-    print(f"$ {' '.join(cmd)}")
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if result.returncode != 0:
@@ -53,7 +51,6 @@ def _list_dir(path: str = ".") -> str:
 
 def _find_file(pattern: str, path: str = ".") -> str:
     cmd = ["find", path, "-name", pattern, "-type", "f"]
-    print(f"$ {' '.join(cmd)}")
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         if result.stdout.strip():
@@ -69,10 +66,9 @@ def _delete_file(path: str) -> str:
     if not os.path.exists(path):
         return f"File not found: {path}"
     cmd = ["rm", path]
-    print(f"$ {' '.join(cmd)}")
     try:
         subprocess.run(cmd, check=True)
-        return f"Deleted: {path}"
+        return f"$ rm {path}\nDeleted: {path}"
     except subprocess.CalledProcessError:
         return f"Failed to delete: {path}"
 
@@ -81,10 +77,9 @@ def _move_file(src: str, dst: str) -> str:
     if not os.path.exists(src):
         return f"Source file not found: {src}"
     cmd = ["mv", src, dst]
-    print(f"$ {' '.join(cmd)}")
     try:
         subprocess.run(cmd, check=True)
-        return f"Moved: {src} → {dst}"
+        return f"$ mv {src} {dst}\nMoved: {src} → {dst}"
     except subprocess.CalledProcessError:
         return f"Failed to move: {src} → {dst}"
 
@@ -103,7 +98,6 @@ def _grep_file(pattern: str, path: str = ".") -> str:
         "--exclude-dir=node_modules",
         "--exclude-dir=.claude",
     ]
-    print(f"$ {' '.join(cmd)}")
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
         lines = result.stdout.strip().split("\n") if result.stdout.strip() else []

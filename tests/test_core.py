@@ -1,0 +1,64 @@
+from unittest.mock import MagicMock, patch
+
+from src.core import Core
+from src.event import DoneEvent, ErrorEvent, ToolEvent
+
+
+def _make_core(mock_client):
+    with patch("src.core.LLMClient", return_value=mock_client):
+        return Core()
+
+
+def test_no_tool_yields_done():
+    mock_client = MagicMock()
+    mock_client.chat.return_value = "Hello!"
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("Hi"))
+    assert len(events) == 1
+    assert isinstance(events[0], DoneEvent)
+    assert events[0].content == "Hello!"
+
+
+def test_tool_then_done():
+    mock_client = MagicMock()
+    mock_client.chat.side_effect = [
+        '【tool】calculator【/tool】{"expr": "2+2"}',
+        "The answer is 4",
+    ]
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("calc 2+2"))
+    assert len(events) == 2
+    assert isinstance(events[0], ToolEvent)
+    assert events[0].tool_name == "calculator"
+    assert isinstance(events[1], DoneEvent)
+    assert "4" in events[1].content
+
+
+def test_raw_tool_text_not_in_events():
+    """LLM 原始含【tool】的文本不出现在 Event 中"""
+    mock_client = MagicMock()
+    mock_client.chat.side_effect = [
+        '【tool】calculator【/tool】{"expr": "1+1"}',
+        "Done",
+    ]
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("test"))
+    for ev in events:
+        if isinstance(ev, DoneEvent):
+            assert "【tool】" not in ev.content
+        if isinstance(ev, ToolEvent):
+            assert "【tool】" not in ev.tool_name
+
+
+def test_error_yields_error_event():
+    mock_client = MagicMock()
+    mock_client.chat.side_effect = Exception("boom")
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("Hi"))
+    assert len(events) == 1
+    assert isinstance(events[0], ErrorEvent)
+    assert "boom" in events[0].message

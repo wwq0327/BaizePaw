@@ -15,4 +15,4 @@ LLM_API_BASE = os.getenv("LLM_API_BASE", os.getenv("DEEPSEEK_API_BASE", "https:/
 LLM_MODEL_NAME = os.getenv("LLM_MODEL_NAME", os.getenv("MODEL_NAME", "deepseek-v4-flash"))
 
 # Agent 配置
-MAX_LOOP = 10  # 最大循环次数，防止死循环
+# 无循环上限，LLM 不输出工具标记时自然结束

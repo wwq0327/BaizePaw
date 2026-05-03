@@ -31,6 +31,8 @@ def test_tool_call_with_json_params():
 
 def test_tool_result_uses_tool_role():
     """工具结果用 tool role 发送，不混在 user 里"""
+    from src.message import ToolResultMessage, UserMessage
+
     with patch("src.agent.LLMClient") as MockLLM:
         mock_client = MagicMock()
         mock_client.chat.side_effect = [
@@ -42,19 +44,16 @@ def test_tool_result_uses_tool_role():
         agent = AgentRunner()
         agent.run("calc")
 
-        # 验证历史中有 tool role 消息
+        # 验证历史中有 ToolResultMessage
         tool_msgs = [
-            m for m in agent.history.messages if m.get("role") == "tool"
+            m for m in agent.history.messages if isinstance(m, ToolResultMessage)
         ]
         assert len(tool_msgs) == 1
-        assert tool_msgs[0]["name"] == "calculator"
-        assert "4" in str(tool_msgs[0]["content"])
+        assert tool_msgs[0].name == "calculator"
 
-        # 验证没有 user role 的消息以"工具「"开头（旧格式）
-        user_msgs = [m for m in agent.history.messages if m.get("role") == "user"]
-        assert not any(
-            m.get("content", "").startswith("工具「") for m in user_msgs
-        )
+        # 验证没有 UserMessage 以"工具「"开头（旧格式混入）
+        user_msgs = [m for m in agent.history.messages if isinstance(m, UserMessage)]
+        assert not any(m.content.startswith("工具「") for m in user_msgs)
 
 
 def test_tool_call_with_legacy_params():

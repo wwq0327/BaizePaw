@@ -19,19 +19,29 @@
 
 - **多轮对话** - 记住对话上下文，连续聊天
 - **工具调用** - LLM 智能触发工具执行
+- **TUI 界面** - Textual 驱动的终端界面
+- **输入排队** - 处理中可随时输入，自动排队
+- **插件系统** - Pipeline + Plugin，可扩展
 - **安全计算器** - 支持基本数学运算
-- **文件读写** - 读取和写入本地文件
-- **可扩展** - 易于添加新工具
+- **文件操作** - 读写、复制、移动、搜索
+
+## 架构
+
+```
+TUI / CLI (表现层)
+    ↓ submit() / poll()
+Conversation (桥接层, worker thread + queue)
+    ↓ run_iter()
+Core (Pipeline)
+    ↓ yield Event
+    ChatHistory + LLMClient + ToolDispatcher
+```
+
+三层分离：表现层只管 UI，Conversation 管线程和队列，Core 管业务逻辑和 Event 流。
 
 ## 快速开始
 
-### 1. 克隆项目
-
-```bash
-cd /path/to/your/code
-```
-
-### 2. 配置 API Key
+### 1. 配置 API Key
 
 ```bash
 export LLM_API_KEY="your-api-key"
@@ -45,37 +55,28 @@ cp .env.example .env
 # 支持 LLM_API_KEY、SILICONFLOW_API_KEY、DEEPSEEK_API_KEY
 ```
 
-### 3. 安装依赖
+### 2. 安装依赖
 
 ```bash
 source ../.venv/bin/activate  # 使用共享虚拟环境
 pip install -r requirements.txt
 ```
 
-### 4. 运行
+### 3. 运行
 
-**方式一：一键启动（推荐）**
+**TUI 模式（默认）**
 ```bash
-./baize
-```
-
-**方式二：手动启动**
-```bash
-source ../.venv/bin/activate
 python main.py
 ```
 
-### 5. 测试对话
-
+**CLI 模式**
+```bash
+python main.py --cli
 ```
-You: 你好
-BaizePaw: 你好！我是白泽...
 
-You: 计算 2+2
-BaizePaw: 2 + 2 = 4
-
-You: 读取 config.py
-BaizePaw: config.py 的内容是...
+**一键启动**
+```bash
+./baize
 ```
 
 ## 项目结构
@@ -83,18 +84,30 @@ BaizePaw: config.py 的内容是...
 ```
 BaizePaw/
 ├── src/
-│   ├── agent.py          # Agent 核心循环
-│   ├── llm_client.py    # LLM API 调用
-│   ├── chat_history.py  # 对话历史管理
-│   ├── prompts.py       # System prompt
-│   ├── shell.py         # 命令行交互
+│   ├── core.py            # Core 核心循环，yield Event
+│   ├── conversation.py    # Conversation 桥接层（worker + queue）
+│   ├── pipeline.py        # Plugin 基类 + Pipeline
+│   ├── event.py           # Event 体系（ToolEvent/DoneEvent/ErrorEvent）
+│   ├── llm_client.py      # LLM API 调用
+│   ├── chat_history.py    # 对话历史管理
+│   ├── message.py         # 消息类型定义
+│   ├── prompts.py         # System prompt
+│   ├── shell.py           # CLI 交互
+│   ├── tui/
+│   │   └── app.py         # Textual TUI
+│   ├── agent.py           # [废弃] 旧 Agent，用 Core 替代
 │   └── tools/
-│       ├── calculator.py    # 计算器
-│       ├── file_ops.py      # 文件读写
-│       └── search.py       # 搜索（待实现）
-├── tests/               # 单元测试
-├── config.py            # 配置
-└── main.py              # 入口
+│       ├── tool_base.py   # Tool 基类
+│       ├── dispatcher.py  # 工具分发器
+│       ├── calculator.py  # 计算器
+│       ├── file_ops.py    # 文件操作
+│       └── search.py      # 搜索
+├── tests/                 # 单元测试
+├── config.py              # 配置
+├── main.py                # 入口
+└── docs/
+    ├── devlog/            # 开发日志
+    └── adr/               # 架构决策记录
 ```
 
 ## 工具列表
@@ -122,8 +135,9 @@ PYTHONPATH=. pytest -v
 ## 技术栈
 
 - Python 3.12
-- 硅基流动 / DeepSeek API
+- DeepSeek API（Anthropic 兼容接口）
 - requests + python-dotenv
+- Textual（TUI）
 
 ## 学习资源
 
@@ -132,15 +146,16 @@ PYTHONPATH=. pytest -v
 ```
 docs/
 ├── development-process.md   # 开发流程总纲
-├── devlog/                 # 开发日志
-│   ├── TODO.md             # 待办想法
-│   └── v0.1-core-framework.md   # v0.1 开发过程
-├── adr/                    # 架构决策记录
-│   ├── 001-why-not-langchain.md  # 为什么不用 LangChain
-│   ├── 002-custom-tool-format.md  # 为什么自创工具格式
-│   ├── 003-why-deepseek.md       # 为什么选 DeepSeek
-│   └── 004-grep-tool.md          # grep 工具方案
-└── superpowers/            # 高阶功能计划
+├── devlog/                  # 开发日志
+│   ├── TODO.md              # 待办想法
+│   ├── v0.1-core-framework.md  # v0.1 开发过程
+│   └── v0.2-architecture-redesign.md  # v0.2 架构重设计
+├── adr/                     # 架构决策记录
+│   ├── 001-why-not-langchain.md
+│   ├── 002-custom-tool-format.md
+│   ├── 003-why-deepseek.md
+│   └── 004-grep-tool.md
+└── plans/                   # 实现计划
 ```
 
 ### 亮点
@@ -148,6 +163,7 @@ docs/
 - **没有黑盒**：每一行代码都知道在干什么
 - **问题驱动**：踩过的坑、解决方案都有记录
 - **循序渐进**：从简单开始，逐步加功能
+- **TDD 驱动**：先写测试再写实现，每步验证
 
 ## 许可证
 
