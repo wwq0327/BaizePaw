@@ -15,22 +15,26 @@ from .file_ops import (
 )
 
 
+_DEFAULT_TOOLS = [
+    calculator_tool,
+    search_tool,
+    read_file_tool,
+    write_file_tool,
+    file_append_tool,
+    copy_file_tool,
+    list_dir_tool,
+    find_file_tool,
+    delete_file_tool,
+    move_file_tool,
+    grep_file_tool,
+]
+
+
 class ToolDispatcher:
-    def __init__(self):
+    def __init__(self, tools: list = None):
         self.tools: Dict[str, Tool] = {}
-        for t in [
-            calculator_tool,
-            search_tool,
-            read_file_tool,
-            write_file_tool,
-            file_append_tool,
-            copy_file_tool,
-            list_dir_tool,
-            find_file_tool,
-            delete_file_tool,
-            move_file_tool,
-            grep_file_tool,
-        ]:
+        tool_list = tools if tools is not None else _DEFAULT_TOOLS
+        for t in tool_list:
             self.register(t)
 
     def register(self, tool: Tool) -> None:

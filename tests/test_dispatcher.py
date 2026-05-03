@@ -51,3 +51,25 @@ def test_generate_system_prompt_contains_param_hints():
     prompt = dispatcher.generate_system_prompt()
     assert "（必需）" in prompt
     assert "（可选）" in prompt
+
+
+def test_dispatcher_with_custom_tools():
+    from src.tools.tool_base import Tool
+
+    custom = Tool(
+        name="custom_tool",
+        description="A test tool",
+        parameters={"type": "object", "properties": {}, "required": []},
+        fn=lambda: "custom result",
+    )
+    dispatcher = ToolDispatcher(tools=[custom])
+    assert "custom_tool" in dispatcher.tools
+    assert "calculator" not in dispatcher.tools
+    result = dispatcher.dispatch("custom_tool", {})
+    assert result == "custom result"
+
+
+def test_dispatcher_with_none_uses_defaults():
+    dispatcher = ToolDispatcher(tools=None)
+    assert "calculator" in dispatcher.tools
+    assert "file_read" in dispatcher.tools

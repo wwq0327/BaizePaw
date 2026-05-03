@@ -7,8 +7,8 @@ from .event import ErrorEvent, Event
 
 
 class Conversation:
-    def __init__(self):
-        self._core = Core()
+    def __init__(self, core=None):
+        self._core = core if core is not None else Core()
         self._in: queue.Queue = queue.Queue()
         self._out: List[Event] = []
         self._out_lock = threading.Lock()

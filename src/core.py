@@ -12,9 +12,9 @@ from .role import load_role
 
 
 class Core:
-    def __init__(self):
-        self.dispatcher = ToolDispatcher()
-        self.role_prompt = load_role()
+    def __init__(self, role_path: str = None, tools: list = None):
+        self.dispatcher = ToolDispatcher(tools=tools)
+        self.role_prompt = load_role(role_path)
         system_prompt = self.dispatcher.generate_system_prompt(self.role_prompt)
         self.llm = LLMClient(system_prompt=system_prompt)
         self.history = ChatHistory()

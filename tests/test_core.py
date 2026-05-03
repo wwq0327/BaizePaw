@@ -62,3 +62,37 @@ def test_error_yields_error_event():
     assert len(events) == 1
     assert isinstance(events[0], ErrorEvent)
     assert "boom" in events[0].message
+
+
+def test_core_with_custom_role_path():
+    import tempfile, os
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+        f.write("# Custom Role\nBe helpful.")
+        role_path = f.name
+
+    try:
+        mock_client = MagicMock()
+        mock_client.chat.return_value = "OK"
+        with patch("src.core.LLMClient", return_value=mock_client):
+            core = Core(role_path=role_path)
+        assert "Custom Role" in core.role_prompt
+    finally:
+        os.unlink(role_path)
+
+
+def test_core_with_custom_tools():
+    from src.tools.tool_base import Tool
+
+    custom = Tool(
+        name="custom",
+        description="test",
+        parameters={"type": "object", "properties": {}, "required": []},
+        fn=lambda: "custom",
+    )
+    mock_client = MagicMock()
+    mock_client.chat.return_value = "OK"
+    with patch("src.core.LLMClient", return_value=mock_client):
+        core = Core(tools=[custom])
+    assert "custom" in core.dispatcher.tools
+    assert "calculator" not in core.dispatcher.tools

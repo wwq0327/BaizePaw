@@ -62,3 +62,16 @@ def test_worker_error_yields_error_event():
         events = conv.poll()
         assert any(isinstance(e, ErrorEvent) for e in events)
         conv.stop()
+
+
+def test_conversation_accepts_core_instance():
+    mock_core = MagicMock()
+    mock_core.run_iter.return_value = iter([DoneEvent(content="custom")])
+    conv = Conversation(core=mock_core)
+    assert conv._core is mock_core
+    conv.start()
+    conv.submit("test")
+    time.sleep(0.3)
+    events = conv.poll()
+    assert any(isinstance(e, DoneEvent) for e in events)
+    conv.stop()
