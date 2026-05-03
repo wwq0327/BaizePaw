@@ -15,11 +15,15 @@ class UserMessage:
 class AssistantMessage:
     role = "assistant"
 
-    def __init__(self, content: str):
+    def __init__(self, content: str, reasoning_content: Optional[str] = None):
         self.content = content
+        self.reasoning_content = reasoning_content
 
     def to_dict(self) -> dict:
-        return {"role": self.role, "content": self.content}
+        d = {"role": self.role, "content": self.content}
+        if self.reasoning_content is not None:
+            d["reasoning_content"] = self.reasoning_content
+        return d
 
 
 class ToolCallMessage:

@@ -17,7 +17,7 @@ def test_chat_returns_string(client):
         mock_post.return_value = mock_response
 
         result = client.chat([{"role": "user", "content": "hi"}])
-        assert result == "Hello!"
+        assert str(result) == "Hello!"
 
 
 def test_chat_with_tools(client):
@@ -29,7 +29,7 @@ def test_chat_with_tools(client):
         mock_post.return_value = mock_response
 
         result = client.chat([{"role": "user", "content": "search"}])
-        assert "Searching" in result
+        assert "Searching" in str(result)
 
 
 def test_chat_with_custom_system_prompt():
@@ -49,4 +49,4 @@ def test_chat_with_custom_system_prompt():
         call_kwargs = mock_post.call_args[1]
         sent_messages = call_kwargs["json"]["messages"]
         assert sent_messages[0]["content"] == "Custom system prompt"
-        assert result == "Custom!"
+        assert str(result) == "Custom!"

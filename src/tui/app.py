@@ -1,3 +1,5 @@
+import subprocess
+
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Input, RichLog, Static
 from rich.markdown import Markdown
@@ -25,9 +27,12 @@ class BaizePawApp(App):
     }
     """
 
+    BINDINGS = [("y", "copy_last_response", "Copy last reply")]
+
     def __init__(self):
         super().__init__()
         self.conversation = Conversation()
+        self._last_response = None
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -63,14 +68,28 @@ class BaizePawApp(App):
                     )
                 )
             elif isinstance(ev, DoneEvent):
+                self._last_response = ev.content
                 log.write(Text.from_markup("[bold bright_green]BaizePaw:[/bold bright_green]"))
                 log.write(Markdown(ev.content))
                 log.write("")
-                self.query_one("#status", Static).update("Ready")
+                self.query_one("#status", Static).update("Ready | y=copy")
             elif isinstance(ev, ErrorEvent):
                 log.write(Text.from_markup(f"[bold red]Error:[/bold red] {ev.message}"))
                 log.write("")
                 self.query_one("#status", Static).update("Ready")
+
+    def action_copy_last_response(self):
+        if not self._last_response:
+            return
+        try:
+            subprocess.run(
+                ["pbcopy"],
+                input=self._last_response.encode("utf-8"),
+                check=True,
+            )
+            self.query_one("#status", Static).update("Copied! | y=copy")
+        except Exception:
+            pass
 
     def on_unmount(self):
         self.conversation.stop()

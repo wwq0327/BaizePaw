@@ -1,9 +1,19 @@
 import time
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 import requests
 
 from .prompts import SYSTEM_PROMPT
+
+
+@dataclass
+class ChatResponse:
+    content: str
+    reasoning_content: Optional[str] = None
+
+    def __str__(self):
+        return self.content
 
 
 class LLMClient:
@@ -43,7 +53,11 @@ class LLMClient:
                 )
                 response.raise_for_status()
                 data = response.json()
-                return data["choices"][0]["message"]["content"]
+                msg = data["choices"][0]["message"]
+                return ChatResponse(
+                    content=msg["content"],
+                    reasoning_content=msg.get("reasoning_content"),
+                )
 
             except requests.exceptions.Timeout:
                 last_error = "API 请求超时，请检查网络连接"

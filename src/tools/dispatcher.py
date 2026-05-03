@@ -47,8 +47,11 @@ class ToolDispatcher:
         except Exception as e:
             return f"Tool error: {e}"
 
-    def generate_system_prompt(self) -> str:
-        lines = ["你叫白泽（BaizePaw），是一个个人助手。", "", "可用工具："]
+    def generate_system_prompt(self, role_prompt: str = None) -> str:
+        if role_prompt is None:
+            from ..role import load_role
+            role_prompt = load_role()
+        lines = [role_prompt, "", "---", "", "可用工具："]
         for tool in self.tools.values():
             props = tool.parameters.get("properties", {})
             required = tool.parameters.get("required", [])

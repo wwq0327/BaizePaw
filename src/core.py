@@ -8,10 +8,14 @@ from .llm_client import LLMClient
 from .tools.dispatcher import ToolDispatcher
 
 
+from .role import load_role
+
+
 class Core:
     def __init__(self):
         self.dispatcher = ToolDispatcher()
-        system_prompt = self.dispatcher.generate_system_prompt()
+        self.role_prompt = load_role()
+        system_prompt = self.dispatcher.generate_system_prompt(self.role_prompt)
         self.llm = LLMClient(system_prompt=system_prompt)
         self.history = ChatHistory()
 
@@ -21,9 +25,11 @@ class Core:
 
             while True:
                 response = self.llm.chat(self.history.get_context())
+                response_str = str(response)
+                reasoning = getattr(response, "reasoning_content", None)
 
                 tool_match = re.search(
-                    r"【tool】(\w+)【/tool】(.+?)(?=【|$)", response, re.DOTALL
+                    r"【tool】(\w+)【/tool】(.+?)(?=【|$)", response_str, re.DOTALL
                 )
                 if tool_match:
                     tool_name = tool_match.group(1)
@@ -38,7 +44,7 @@ class Core:
 
                     args_json = json.dumps(params, ensure_ascii=False)
                     tool_call_id = self.history.add_tool_call(
-                        response, tool_name, args_json
+                        response_str, tool_name, args_json
                     )
 
                     tool_result = self.dispatcher.dispatch(tool_name, params)
@@ -51,8 +57,8 @@ class Core:
                     )
                     continue
 
-                self.history.add_assistant(response)
-                yield DoneEvent(content=response)
+                self.history.add_assistant(response_str, reasoning)
+                yield DoneEvent(content=response_str)
                 return
 
         except Exception as e:

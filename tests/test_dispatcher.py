@@ -28,7 +28,21 @@ def test_generate_system_prompt_contains_all_tools():
     assert "copy_file" in prompt
     assert "file_append" in prompt
     assert "find_file" in prompt
-    assert prompt.startswith("你叫白泽")
+
+
+def test_generate_system_prompt_includes_role():
+    dispatcher = ToolDispatcher()
+    prompt = dispatcher.generate_system_prompt(role_prompt="# 测试角色\n行为准则")
+    assert prompt.startswith("# 测试角色")
+    assert "行为准则" in prompt
+
+
+def test_generate_system_prompt_without_role():
+    """不传 role_prompt 时从 load_role 读取，prompt 应包含角色内容"""
+    dispatcher = ToolDispatcher()
+    prompt = dispatcher.generate_system_prompt()
+    assert "白泽" in prompt
+    assert "## 1. 做什么" in prompt
     assert "【tool】" in prompt
 
 

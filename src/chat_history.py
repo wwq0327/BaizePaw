@@ -15,8 +15,8 @@ class ChatHistory:
         self.messages.append(UserMessage(content))
         self._trim()
 
-    def add_assistant(self, content: str):
-        self.messages.append(AssistantMessage(content))
+    def add_assistant(self, content: str, reasoning_content: str = None):
+        self.messages.append(AssistantMessage(content, reasoning_content))
         self._trim()
 
     def add_tool_call(self, content: str, tool_name: str, arguments: str) -> str:
