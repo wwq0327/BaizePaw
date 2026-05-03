@@ -26,7 +26,7 @@ class Shell:
             pass
 
     def start(self):
-        print("BaizePaw v0.2 - Your personal agent (type 'quit' to exit)")
+        print("BaizePaw v0.3 - Your personal agent (type 'quit' to exit)")
         print("-" * 40)
         self.conversation.start()
 

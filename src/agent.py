@@ -1,4 +1,4 @@
-# DEPRECATED: Use src.core.Core instead. This module will be removed in v0.2.
+# DEPRECATED: Use src.core.Core instead. This module will be removed in v0.3.
 import json
 import re
 from .llm_client import LLMClient
