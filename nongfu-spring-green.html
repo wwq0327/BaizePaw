@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>农夫山泉 · 绿瓶纯净水</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f5f0;
+    color: #2d2d2d;
+    line-height: 1.6;
+  }
+
+  /* ===== 品牌色 ===== */
+  :root {
+    --green: #00a650;
+    --green-dark: #007a3d;
+    --green-light: #e8f5e9;
+    --green-pale: #c8e6c9;
+    --gold: #c8a96e;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    position: relative;
+    height: 100vh;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 30%, #388e3c 60%, #43a047 100%);
+    z-index: 0;
+  }
+
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 80%, rgba(255,255,255,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 30% 40%, rgba(255,255,255,0.04) 0%, transparent 60%);
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80') center/cover no-repeat;
+    opacity: 0.15;
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: #fff;
+    max-width: 800px;
+    padding: 0 24px;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    padding: 6px 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    font-size: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 10vw, 96px);
+    font-weight: 700;
+    letter-spacing: 12px;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+  }
+
+  .hero .sub-brand {
+    font-size: clamp(16px, 3vw, 28px);
+    font-weight: 300;
+    letter-spacing: 16px;
+    margin-bottom: 24px;
+    opacity: 0.85;
+  }
+
+  .hero .tagline {
+    font-size: clamp(18px, 2.5vw, 32px);
+    font-weight: 400;
+    letter-spacing: 4px;
+    margin-bottom: 40px;
+    opacity: 0.75;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+    letter-spacing: 2px;
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ===== Section通用 ===== */
+  .section {
+    padding: 100px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-title {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .section-title h2 {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 12px;
+  }
+
+  .section-title p {
+    font-size: 16px;
+    color: #888;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .title-line {
+    width: 40px;
+    height: 3px;
+    background: var(--green);
+    margin: 16px auto;
+  }
+
+  /* ===== 产品介绍 ===== */
+  .product {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: center;
+  }
+
+  .product-visual {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+  }
+
+  /* SVG 瓶子 */
+  .bottle-wrap {
+    position: relative;
+    width: 200px;
+    height: 400px;
+  }
+
+  .bottle {
+    width: 100%;
+    height: 100%;
+  }
+
+  .bottle-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(0,166,80,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .product-info h3 {
+    font-size: 28px;
+    color: var(--green-dark);
+    margin-bottom: 8px;
+  }
+
+  .product-info .meta {
+    color: #999;
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .product-info .desc {
+    color: #555;
+    font-size: 16px;
+    line-height: 1.9;
+    margin-bottom: 32px;
+  }
+
+  .product-info .desc strong {
+    color: var(--green);
+  }
+
+  .specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .spec-item {
+    background: var(--green-light);
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .spec-item .label {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .spec-item .value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--green-dark);
+  }
+
+  /* ===== 理念 ===== */
+  .philosophy-bg {
+    background: var(--green-dark);
+    color: #fff;
+    margin-top: 40px;
+  }
+
+  .philosophy-bg .section-title h2 { color: #fff; }
+  .philosophy-bg .section-title p { color: rgba(255,255,255,0.6); }
+  .philosophy-bg .title-line { background: var(--gold); }
+
+  .philosophy-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  .philosophy-card {
+    text-align: center;
+    padding: 40px 24px;
+  }
+
+  .philosophy-card .icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .philosophy-card .icon svg { width: 32px; height: 32px; }
+
+  .philosophy-card h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+    color: #fff;
+  }
+
+  .philosophy-card p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ===== 水源 ===== */
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .source-card {
+    text-align: center;
+    padding: 32px 16px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+  }
+
+  .source-card:hover { transform: translateY(-4px); }
+
+  .source-card .num {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 8px;
+  }
+
+  .source-card h4 {
+    font-size: 16px;
+    color: var(--green-dark);
+    margin-bottom: 8px;
+  }
+
+  .source-card p {
+    font-size: 13px;
+    color: #999;
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    text-align: center;
+    padding: 48px 24px;
+    background: #1a1a1a;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+  }
+
+  footer strong { color: var(--green); }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .product { grid-template-columns: 1fr; gap: 40px; }
+    .product-visual { min-height: 300px; }
+    .bottle-wrap { width: 140px; height: 280px; }
+    .philosophy-grid { grid-template-columns: 1fr; gap: 0; }
+    .source-grid { grid-template-columns: repeat(2, 1fr); }
+    .specs { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-badge">2024 · 全新上市</div>
+    <h1>农夫山泉</h1>
+    <div class="sub-brand">饮用纯净水</div>
+    <div class="tagline">绿瓶 · 有点甜</div>
+  </div>
+  <div class="hero-scroll">SCROLL</div>
+</section>
+
+<!-- ===== 产品介绍 ===== -->
+<section class="section">
+  <div class="section-title">
+    <h2>一片水 · 一瓶水</h2>
+    <div class="title-line"></div>
+    <p>从水源到瓶装，每一滴都源于自然</p>
+  </div>
+
+  <div class="product">
+    <div class="product-visual">
+      <div class="bottle-glow"></div>
+      <div class="bottle-wrap">
+        <svg class="bottle" viewBox="0 0 200 400" fill="none">
+          <!-- 瓶盖 -->
+          <rect x="75" y="10" width="50" height="30" rx="4" fill="#00a650"/>
+          <rect x="70" y="8" width="60" height="8" rx="4" fill="#008040"/>
+          <!-- 瓶颈 -->
+          <path d="M80 40 L75 80 Q75 90 85 90 L115 90 Q125 90 125 80 L120 40" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1"/>
+          <!-- 瓶身 -->
+          <path d="M75 90 L65 180 Q60 220 60 280 Q60 360 80 380 L120 380 Q140 360 140 280 Q140 220 135 180 L125 90" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1"/>
+          <!-- 标签 - 上半部白色标签 -->
+          <rect x="68" y="130" width="64" height="80" rx="2" fill="#fff" stroke="#ddd" stroke-width="0.5"/>
+          <!-- 标签上的绿色条纹 -->
+          <rect x="68" y="130" width="64" height="16" rx="2" fill="#00a650"/>
+          <!-- 标签文字 -->
+          <text x="100" y="162" text-anchor="middle" font-size="9" font-weight="700" fill="#00a650">农夫山泉</text>
+          <text x="100" y="176" text-anchor="middle" font-size="7" fill="#666">NONGFU SPRING</text>
+          <text x="100" y="192" text-anchor="middle" font-size="6" fill="#999">饮用纯净水</text>
+          <!-- 标签 - 下半部绿色标签 -->
+          <rect x="68" y="215" width="64" height="60" rx="2" fill="#00a650"/>
+          <text x="100" y="240" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">有点甜</text>
+          <text x="100" y="258" text-anchor="middle" font-size="6" fill="rgba(255,255,255,0.7)">550mL</text>
+          <!-- 水线 -->
+          <path d="M78 110 Q100 105 122 110" stroke="rgba(0,166,80,0.3)" stroke-width="1" fill="none"/>
+          <path d="M80 300 Q100 310 120 300" stroke="rgba(0,166,80,0.15)" stroke-width="1" fill="none"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="product-info">
+      <h3>绿瓶饮用纯净水</h3>
+      <p class="meta">550mL · 2024年上市</p>
+      <div class="desc">
+        <p>2024年，农夫山泉时隔24年重返纯净水赛道，推出<strong>绿色瓶装饮用纯净水</strong>。</p>
+        <p style="margin-top:12px;">沿用经典 slogan <strong>「农夫山泉有点甜」</strong>，以绿色包装焕新登场。水源甄选千岛湖、长白山、丹江口等十大优质水源地，每一瓶都承载着大自然的馈赠。</p>
+        <p style="margin-top:12px;">绿瓶纯净水与红瓶天然水形成产品矩阵，为消费者提供更多元的选择。</p>
+      </div>
+
+      <div class="specs">
+        <div class="spec-item">
+          <div class="label">规格</div>
+          <div class="value">550mL / 瓶</div>
+        </div>
+        <div class="spec-item">
+          <div class="label">类型</div>
+          <div class="value">饮用纯净水</div>
+        </div>
+        <div class="spec-item">
+          <div class="label">水源地</div>
+          <div class="value">十大天然水源</div>
+        </div>
+        <div class="spec-item">
+          <div class="label">上市时间</div>
+          <div class="value">2024 年</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 理念 ===== -->
+<section class="philosophy-bg">
+  <div class="section">
+    <div class="section-title">
+      <h2>品牌理念</h2>
+      <div class="title-line"></div>
+      <p>我们不生产水，我们只是大自然的搬运工</p>
+    </div>
+
+    <div class="philosophy-grid">
+      <div class="philosophy-card">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <h3>自然之源</h3>
+        <p>坚持水源地建厂、水源地灌装，从千岛湖到长白山，每一瓶水都源自优质天然水源。</p>
+      </div>
+
+      <div class="philosophy-card">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3>品质至上</h3>
+        <p>从水源保护到生产工艺，以严格的品质管理体系确保每一瓶水的安全与纯净。</p>
+      </div>
+
+      <div class="philosophy-card">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <h3>历久弥新</h3>
+        <p>24年后重返纯净水赛道，以经典致敬时代。绿瓶新装，初心未改，有点甜的味道始终如一。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 水源 ===== -->
+<section class="section">
+  <div class="section-title">
+    <h2>十大水源地</h2>
+    <div class="title-line"></div>
+    <p>每一瓶水，都有它的来处</p>
+  </div>
+
+  <div class="source-grid">
+    <div class="source-card">
+      <div class="num">01</div>
+      <h4>千岛湖</h4>
+      <p>浙江 · 国家一级水体</p>
+    </div>
+    <div class="source-card">
+      <div class="num">02</div>
+      <h4>长白山</h4>
+      <p>吉林 · 原始森林水源</p>
+    </div>
+    <div class="source-card">
+      <div class="num">03</div>
+      <h4>丹江口</h4>
+      <p>湖北 · 南水北调源头</p>
+    </div>
+    <div class="source-card">
+      <div class="num">04</div>
+      <h4>万绿湖</h4>
+      <p>广东 · 华南优质水源</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <p>农夫山泉 · <strong>NONGFU SPRING</strong></p>
+  <p style="margin-top:8px;">我们不生产水，我们只是大自然的搬运工</p>
+  <p style="margin-top:16px; font-size:12px; color:rgba(255,255,255,0.3);">本页面为产品概念展示，仅用于学习交流</p>
+</footer>
+
+</body>
+</html>

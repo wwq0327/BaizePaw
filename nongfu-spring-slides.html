@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>农夫山泉 · 品牌故事</title>
+<!-- Fonts: Cormorant Garamond (serif display) + Work Sans (sans body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ===========================================
+   CSS CUSTOM PROPERTIES — Paper & Ink Theme
+   =========================================== */
+:root {
+  --bg-cream: #f5f3ee;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666;
+  --text-light: #999;
+  --accent-crimson: #b8303a;
+  --accent-warm: #e8d4c0;
+  --accent-gold: #c9a96e;
+  --border-light: #ddd;
+  --font-display: 'Cormorant Garamond', serif;
+  --font-body: 'Work Sans', sans-serif;
+  --title-size: clamp(2rem, 5vw, 4.5rem);
+  --h2-size: clamp(1.25rem, 3vw, 2.2rem);
+  --h3-size: clamp(1rem, 2vw, 1.5rem);
+  --body-size: clamp(0.75rem, 1.4vw, 1.05rem);
+  --small-size: clamp(0.65rem, 1vw, 0.85rem);
+  --slide-padding: clamp(1.5rem, 4vw, 4rem);
+  --content-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-normal: 0.6s;
+}
+
+/* ===========================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   =========================================== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow-x: hidden; }
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+.slide {
+  width: 100vw; height: 100vh; height: 100dvh;
+  overflow: hidden; scroll-snap-align: start;
+  display: flex; flex-direction: column; position: relative;
+}
+
+.slide-content {
+  flex: 1; display: flex; flex-direction: column;
+  justify-content: center; max-height: 100%; overflow: hidden;
+  padding: var(--slide-padding);
+}
+
+.card, .container, .content-box {
+  max-width: min(90vw, 1000px); max-height: min(80vh, 700px);
+}
+
+.feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+.feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.4; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: clamp(0.5rem, 1.5vw, 1.5rem);
+}
+
+img, .image-container {
+  max-width: 100%; max-height: min(50vh, 400px); object-fit: contain;
+}
+
+@media (max-height: 700px) {
+  :root {
+    --slide-padding: clamp(0.75rem, 3vw, 2rem);
+    --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+    --title-size: clamp(1.5rem, 4.5vw, 2.5rem);
+    --h2-size: clamp(1rem, 3vw, 1.5rem);
+  }
+}
+@media (max-height: 600px) {
+  :root {
+    --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+    --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+    --title-size: clamp(1.25rem, 4vw, 1.75rem);
+    --body-size: clamp(0.7rem, 1.2vw, 0.9rem);
+  }
+  .nav-dots, .keyboard-hint { display: none; }
+}
+@media (max-height: 500px) {
+  :root {
+    --slide-padding: clamp(0.4rem, 2vw, 1rem);
+    --title-size: clamp(1rem, 3.5vw, 1.5rem);
+    --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+    --body-size: clamp(0.65rem, 1vw, 0.85rem);
+  }
+}
+@media (max-width: 600px) {
+  :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* ===========================================
+   REDUCED MOTION
+   =========================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* ===========================================
+   PAPER & INK — AESTHETIC STYLES
+   =========================================== */
+body {
+  font-family: var(--font-body);
+  background: var(--bg-cream);
+  color: var(--text-primary);
+}
+
+/* Decorative crimson bar on left */
+.slide::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--accent-crimson); z-index: 2;
+}
+
+/* Abstract geometric decorations */
+.deco-circle {
+  position: absolute; border-radius: 50%; border: 1px solid var(--accent-warm);
+  pointer-events: none; z-index: 0;
+}
+.deco-line {
+  position: absolute; height: 1px; background: var(--accent-warm);
+  pointer-events: none; z-index: 0;
+}
+
+/* ===========================================
+   SLIDE-SPECIFIC
+   =========================================== */
+
+/* --- Title Slide --- */
+.title-slide { justify-content: center; align-items: center; text-align: center; }
+.title-slide .slide-content { align-items: center; }
+
+.title-label {
+  font-family: var(--font-body);
+  font-size: var(--small-size);
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--accent-crimson); margin-bottom: calc(var(--content-gap) * 1.5);
+}
+
+.title-main {
+  font-family: var(--font-display);
+  font-size: var(--title-size); font-weight: 700;
+  letter-spacing: 6px; line-height: 1.2;
+}
+.title-main em { font-style: italic; font-weight: 400; color: var(--text-secondary); }
+
+.title-sub {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2vw, 1.5rem); font-style: italic;
+  color: var(--text-secondary); margin-top: calc(var(--content-gap) * 0.5);
+}
+
+.title-tagline {
+  font-family: var(--font-body);
+  font-size: var(--body-size); font-weight: 300;
+  color: var(--text-light); margin-top: calc(var(--content-gap) * 1.5);
+  letter-spacing: 1px;
+}
+
+/* --- Content Slides --- */
+.slide-header {
+  display: flex; align-items: baseline; gap: clamp(0.5rem, 1.5vw, 1.5rem);
+  margin-bottom: calc(var(--content-gap) * 1.2);
+}
+
+.slide-number {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 700;
+  color: var(--accent-crimson); opacity: 0.3; line-height: 1;
+}
+
+.slide-header h2 {
+  font-family: var(--font-display);
+  font-size: var(--h2-size); font-weight: 600;
+  color: var(--text-primary);
+}
+
+.slide-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: var(--content-gap); }
+
+/* Text content */
+.body-text {
+  font-size: var(--body-size); line-height: 1.7; color: var(--text-secondary);
+  max-width: min(85vw, 720px);
+}
+.body-text strong { color: var(--text-primary); font-weight: 500; }
+.body-text .highlight { color: var(--accent-crimson); font-weight: 500; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: clamp(1rem, 2vw, 2rem); }
+.timeline::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 1px; background: var(--accent-warm);
+}
+.timeline-item { position: relative; margin-bottom: calc(var(--content-gap) * 0.6); }
+.timeline-item::before {
+  content: ''; position: absolute; left: calc(-1 * clamp(1rem, 2vw, 2rem));
+  top: 0.5em; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--accent-crimson);
+  transform: translateX(-50%);
+}
+.timeline-year {
+  font-family: var(--font-display); font-size: var(--body-size);
+  font-weight: 700; color: var(--accent-crimson); display: inline-block; margin-right: 0.5em;
+}
+.timeline-text { font-size: var(--body-size); color: var(--text-secondary); line-height: 1.6; }
+
+/* Product cards */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: clamp(0.5rem, 1vw, 1rem);
+}
+.product-card {
+  background: rgba(255,255,255,0.6); padding: clamp(0.75rem, 1.5vw, 1.5rem);
+  border: 1px solid var(--border-light); border-radius: 2px;
+}
+.product-card h4 {
+  font-family: var(--font-display); font-size: var(--h3-size); font-weight: 600;
+  color: var(--accent-crimson); margin-bottom: 0.3em;
+}
+.product-card p { font-size: var(--small-size); color: var(--text-light); line-height: 1.5; }
+
+/* Feature list columns */
+.feature-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+}
+.feature-item {
+  border-left: 2px solid var(--accent-warm);
+  padding: clamp(0.4rem, 0.8vw, 0.75rem) clamp(0.75rem, 1.2vw, 1.25rem);
+}
+.feature-item .num { font-family: var(--font-display); font-size: var(--body-size); font-weight: 700; color: var(--accent-crimson); }
+.feature-item h4 { font-family: var(--font-display); font-size: var(--h3-size); font-weight: 600; margin: 0.2em 0; }
+.feature-item p { font-size: var(--small-size); color: var(--text-secondary); line-height: 1.5; }
+
+/* Slogan evolution */
+.slogan-list { max-width: min(85vw, 650px); }
+.slogan-item {
+  display: flex; align-items: baseline; gap: clamp(0.5rem, 1.5vw, 1.5rem);
+  padding: clamp(0.3rem, 0.6vw, 0.5rem) 0;
+  border-bottom: 1px solid var(--accent-warm);
+}
+.slogan-item:last-child { border-bottom: none; }
+.slogan-year { font-family: var(--font-display); font-size: var(--small-size); font-style: italic; color: var(--accent-crimson); min-width: 3em; }
+.slogan-text { font-size: var(--body-size); color: var(--text-primary); }
+.slogan-text .famous { font-style: italic; color: var(--accent-crimson); }
+
+/* Closing slide */
+.closing-slide { justify-content: center; align-items: center; text-align: center; }
+.closing-slide .slide-content { align-items: center; }
+.closing-slogan {
+  font-family: var(--font-display); font-size: clamp(1.25rem, 3vw, 2.5rem);
+  font-style: italic; color: var(--text-primary); line-height: 1.4;
+  max-width: min(85vw, 600px);
+}
+.closing-source {
+  font-family: var(--font-display); font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+  color: var(--text-light); margin-top: calc(var(--content-gap) * 0.5);
+}
+
+/* ===========================================
+   ANIMATIONS — Calm & Minimal
+   =========================================== */
+.reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.8s var(--ease-out-expo),
+              transform 0.8s var(--ease-out-expo);
+}
+.slide.visible .reveal { opacity: 1; transform: translateY(0); }
+
+.reveal:nth-child(1) { transition-delay: 0.1s; }
+.reveal:nth-child(2) { transition-delay: 0.2s; }
+.reveal:nth-child(3) { transition-delay: 0.3s; }
+.reveal:nth-child(4) { transition-delay: 0.4s; }
+.reveal:nth-child(5) { transition-delay: 0.5s; }
+.reveal:nth-child(6) { transition-delay: 0.6s; }
+.reveal:nth-child(7) { transition-delay: 0.7s; }
+
+/* ===========================================
+   NAVIGATION
+   =========================================== */
+
+/* Progress bar */
+.progress-bar {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px;
+  background: transparent; z-index: 1000;
+}
+.progress-bar-fill {
+  height: 100%; width: 0%;
+  background: var(--accent-crimson);
+  transition: width 0.3s var(--ease-out-expo);
+}
+
+/* Navigation dots */
+.nav-dots {
+  position: fixed; right: clamp(0.75rem, 1.5vw, 1.5rem);
+  top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 999;
+}
+.nav-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: transparent; border: 1px solid var(--text-light);
+  cursor: pointer; transition: all 0.3s ease; padding: 0;
+}
+.nav-dot.active { background: var(--accent-crimson); border-color: var(--accent-crimson); }
+.nav-dot:hover { border-color: var(--accent-crimson); }
+
+/* Keyboard hint */
+.keyboard-hint {
+  position: fixed; bottom: clamp(0.5rem, 1.5vw, 1.5rem);
+  left: 50%; transform: translateX(-50%);
+  font-size: clamp(0.55rem, 0.8vw, 0.7rem);
+  color: var(--text-light); z-index: 999;
+  opacity: 0.5; pointer-events: none;
+}
+
+/* ===========================================
+   INLINE EDITING
+   =========================================== */
+.edit-hotzone {
+  position: fixed; top: 0; left: 0;
+  width: 80px; height: 80px; z-index: 10000; cursor: pointer;
+}
+.edit-toggle {
+  position: fixed; top: 12px; left: 12px; z-index: 10001;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+  background: var(--accent-crimson); color: #fff; border: none;
+  width: 36px; height: 36px; border-radius: 50%;
+  font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+
+.edit-banner {
+  position: fixed; top: 12px; left: 56px; z-index: 10001;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+  font-size: var(--small-size); color: var(--text-light);
+  background: rgba(255,255,255,0.9); padding: 6px 12px;
+  border-radius: 4px; border: 1px solid var(--border-light);
+}
+.edit-banner.active { opacity: 1; pointer-events: auto; }
+
+body.edit-active [contenteditable] {
+  outline: 1px dashed var(--accent-crimson);
+  outline-offset: 2px; cursor: text;
+  border-radius: 2px; padding: 0 2px;
+}
+
+/* ===========================================
+   UTILITY
+   =========================================== */
+.mb-1 { margin-bottom: var(--content-gap); }
+.mb-05 { margin-bottom: calc(var(--content-gap) * 0.5); }
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+<!-- Navigation Dots -->
+<nav class="nav-dots" id="navDots"></nav>
+
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">← → / Space 翻页 · F 全屏 · E 编辑</div>
+
+<!-- Edit UI -->
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="编辑模式 (E)">✎</button>
+<div class="edit-banner" id="editBanner">编辑模式 · Ctrl+S 保存文件</div>
+
+<!-- ============================================
+     SLIDE 1: 封面
+     ============================================ -->
+<section class="slide title-slide" id="slide1">
+  <div class="deco-circle" style="width:clamp(200px,30vw,400px);height:clamp(200px,30vw,400px);right:-60px;top:-60px;"></div>
+  <div class="deco-circle" style="width:clamp(100px,15vw,200px);height:clamp(100px,15vw,200px);left:-40px;bottom:10%;"></div>
+  <div class="deco-line" style="width:clamp(60px,8vw,120px);left:10%;bottom:clamp(2rem,4vw,4rem);"></div>
+  <div class="slide-content">
+    <div class="title-label reveal">Nongfu Spring · 品牌故事</div>
+    <h1 class="title-main reveal">农夫山泉<em> · </em>有点甜</h1>
+    <p class="title-sub reveal">从千岛湖畔到国民品牌</p>
+    <p class="title-tagline reveal">我们不生产水，我们只是大自然的搬运工</p>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 2: 关于农夫山泉
+     ============================================ -->
+<section class="slide" id="slide2">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="slide-number">01</span>
+      <h2>关于农夫山泉</h2>
+    </div>
+    <div class="slide-body">
+      <p class="body-text reveal">
+        农夫山泉股份有限公司成立于 <strong>1996 年</strong>，总部位于浙江杭州，是中国包装饮用水及饮料行业的龙头企业。
+        创始人 <strong class="highlight">钟睒睒</strong> 以「健康、自然」为品牌核心理念，将一家小水厂打造成市值超 4000 亿港元的上市公司。
+      </p>
+      <div class="feature-cols reveal" style="margin-top:var(--content-gap);">
+        <div class="feature-item">
+          <div class="num">96年</div>
+          <h4>品牌创立</h4>
+          <p>千岛湖畔起步，开创天然饮用水品类</p>
+        </div>
+        <div class="feature-item">
+          <div class="num">12大</div>
+          <h4>水源基地</h4>
+          <p>覆盖全国优质水源地，坚持水源地建厂</p>
+        </div>
+        <div class="feature-item">
+          <div class="num">428亿</div>
+          <h4>年营收</h4>
+          <p>2024 年营收 428.96 亿元，净利润 121 亿元</p>
+        </div>
+        <div class="feature-item">
+          <div class="num">26.5%</div>
+          <h4>市场份额</h4>
+          <p>中国包装饮用水市场占有率第一</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 3: 品牌大事记
+     ============================================ -->
+<section class="slide" id="slide3">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="slide-number">02</span>
+      <h2>品牌大事记</h2>
+    </div>
+    <div class="slide-body">
+      <div class="timeline reveal">
+        <div class="timeline-item">
+          <span class="timeline-year">1996</span>
+          <span class="timeline-text">千岛湖畔创立，农夫山泉品牌诞生</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">1997</span>
+          <span class="timeline-text">首款产品上市，"农夫山泉有点甜"传遍全国</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">2000</span>
+          <span class="timeline-text">宣布停止生产纯净水，全部转为天然水，行业格局由此改变</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">2008</span>
+          <span class="timeline-text">"我们不生产水，我们只是大自然的搬运工"成为品牌灵魂</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">2020</span>
+          <span class="timeline-text">港交所上市，开盘大涨 85%，市值超 4400 亿港元</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-year">2024</span>
+          <span class="timeline-text">绿瓶纯净水上市，24 年后重返纯净水赛道；茶饮料营收首超水业务</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 4: 产品矩阵
+     ============================================ -->
+<section class="slide" id="slide4">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="slide-number">03</span>
+      <h2>产品矩阵</h2>
+    </div>
+    <div class="slide-body">
+      <p class="body-text reveal" style="margin-bottom:var(--content-gap);">
+        从一瓶水起步，农夫山泉已构建起覆盖 <strong>饮用水、茶饮料、功能饮料、果汁</strong> 四大品类的产品矩阵，2024 年茶饮料收入首次超越包装水。
+      </p>
+      <div class="product-grid reveal">
+        <div class="product-card">
+          <h4>🧊 包装水</h4>
+          <p>红瓶天然水 · 绿瓶纯净水 · 高端玻璃瓶水 · 婴幼儿水 · 桶装水</p>
+        </div>
+        <div class="product-card">
+          <h4>🍃 茶饮料</h4>
+          <p>东方树叶（无糖茶）· 茶π · 冰茶 · 柠檬红茶</p>
+        </div>
+        <div class="product-card">
+          <h4>⚡ 功能饮料</h4>
+          <p>尖叫 · 力量帝维他命水</p>
+        </div>
+        <div class="product-card">
+          <h4>🍊 果汁饮料</h4>
+          <p>农夫果园 · 水溶C100 · 17.5°NFC 纯果汁</p>
+        </div>
+        <div class="product-card">
+          <h4>☕ 其他</h4>
+          <p>炭仌咖啡 · 打奶茶 · 苏打气泡水</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 5: 绿瓶纯净水
+     ============================================ -->
+<section class="slide" id="slide5">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="slide-number">04</span>
+      <h2>绿瓶饮用纯净水</h2>
+    </div>
+    <div class="slide-body">
+      <p class="body-text reveal">
+        <strong>2024 年</strong>，农夫山泉时隔 24 年重返纯净水赛道，推出 <strong class="highlight">绿色瓶装饮用纯净水</strong>（550mL）。
+        沿用经典 slogan「农夫山泉有点甜」，与红瓶天然水形成差异化定位——<em>"绿瓶有点甜，红瓶更健康"</em>。
+      </p>
+      <div class="feature-cols reveal" style="margin-top:var(--content-gap);">
+        <div class="feature-item">
+          <div class="num">550mL</div>
+          <h4>规格</h4>
+          <p>经典瓶装容量，运动瓶盖设计</p>
+        </div>
+        <div class="feature-item">
+          <div class="num">9%</div>
+          <h4>市场份额</h4>
+          <p>上市后快速攫取纯净水市场份额</p>
+        </div>
+        <div class="feature-item">
+          <div class="num">10天</div>
+          <h4>铺货速度</h4>
+          <p>上市仅 10 天即发货 1400 万箱</p>
+        </div>
+        <div class="feature-item">
+          <div class="num">2元</div>
+          <h4>零售价</h4>
+          <p>高性价比定价，覆盖主流价格带</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 6: 十二大水源地
+     ============================================ -->
+<section class="slide" id="slide6">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="slide-number">05</span>
+      <h2>十二大水源地</h2>
+    </div>
+    <div class="slide-body">
+      <p class="body-text reveal">
+        农夫山泉坚持 <strong>水源地建厂、水源地灌装</strong>。在全国布局了 12 大优质水源基地，覆盖从东北到华南的广袤版图。
+      </p>
+      <div class="grid reveal" style="margin-top:var(--content-gap);">
+        <div class="product-card"><h4>千岛湖</h4><p>浙江 · 国家一级水体</p></div>
+        <div class="product-card"><h4>长白山</h4><p>吉林 · 原始森林水源</p></div>
+        <div class="product-card"><h4>丹江口</h4><p>湖北 · 南水北调源头</p></div>
+        <div class="product-card"><h4>万绿湖</h4><p>广东 · 华南优质水源</p></div>
+        <div class="product-card"><h4>峨眉山</h4><p>四川 · 高山雪水</p></div>
+        <div class="product-card"><h4>玛纳斯</h4><p>新疆 · 天山冰川</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 7: 品牌理念与广告语
+     ============================================ -->
+<section class="slide" id="slide7">
+  <div class="slide-content">
+    <div class="slide-header reveal">
+      <span class="slide-number">06</span>
+      <h2>品牌理念</h2>
+    </div>
+    <div class="slide-body">
+      <p class="body-text reveal" style="margin-bottom:var(--content-gap);">
+        从小水厂到国民品牌，农夫山泉用一句话贯穿始终——<strong class="highlight">「我们不生产水，我们只是大自然的搬运工」</strong>。
+      </p>
+      <div class="slogan-list reveal">
+        <div class="slogan-item">
+          <span class="slogan-year">1997</span>
+          <span class="slogan-text"><span class="famous">"农夫山泉有点甜"</span> — 品牌起步，以口感打入心智</span>
+        </div>
+        <div class="slogan-item">
+          <span class="slogan-year">2000</span>
+          <span class="slogan-text">"天然水"品类教育 — 以水仙花实验掀起行业变革</span>
+        </div>
+        <div class="slogan-item">
+          <span class="slogan-year">2008</span>
+          <span class="slogan-text"><span class="famous">"我们不生产水，我们只是大自然的搬运工"</span> — 品牌灵魂诞生</span>
+        </div>
+        <div class="slogan-item">
+          <span class="slogan-year">2018</span>
+          <span class="slogan-text">"什么样的水源，孕育什么样的生命" — 高端化与自然叙事</span>
+        </div>
+        <div class="slogan-item">
+          <span class="slogan-year">2024</span>
+          <span class="slogan-text"><span class="famous">"绿瓶有点甜，红瓶更健康"</span> — 双瓶战略，差异化定位</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 8: 结尾
+     ============================================ -->
+<section class="slide closing-slide" id="slide8">
+  <div class="deco-circle" style="width:clamp(250px,35vw,500px);height:clamp(250px,35vw,500px);left:50%;top:50%;transform:translate(-50%,-50%);border-color:var(--accent-warm);"></div>
+  <div class="deco-line" style="width:clamp(40px,5vw,80px);right:15%;bottom:25%;"></div>
+  <div class="slide-content">
+    <p class="title-label reveal" style="color:var(--text-light);">Nongfu Spring</p>
+    <p class="closing-slogan reveal">我们不生产水<br>我们只是大自然的搬运工</p>
+    <p class="closing-source reveal">农夫山泉有点甜</p>
+  </div>
+</section>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   =========================================== */
+class SlidePresentation {
+  constructor() {
+    this.slides = document.querySelectorAll(".slide");
+    this.currentSlide = 0;
+    this.isEditMode = false;
+    this.setupIntersectionObserver();
+    this.setupKeyboardNav();
+    this.setupTouchNav();
+    this.setupWheelNav();
+    this.setupProgressBar();
+    this.setupNavDots();
+    this.setupEditing();
+  }
+
+  /* --- Intersection Observer --- */
+  setupIntersectionObserver() {
+    const options = { threshold: 0.3 };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          this.currentSlide = Array.from(this.slides).indexOf(entry.target);
+          this.updateProgress();
+          this.updateNavDots();
+        }
+      });
+    }, options);
+    this.slides.forEach(s => observer.observe(s));
+  }
+
+  /* --- Keyboard Navigation --- */
+  setupKeyboardNav() {
+    document.addEventListener("keydown", (e) => {
+      if (e.target.getAttribute("contenteditable")) return;
+      if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        this.nextSlide();
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        this.prevSlide();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        this.goToSlide(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        this.goToSlide(this.slides.length - 1);
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        this.toggleFullscreen();
+      } else if (e.key === "e" || e.key === "E") {
+        if (!e.target.getAttribute("contenteditable")) this.toggleEditMode();
+      }
+    });
+  }
+
+  nextSlide() { this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1)); }
+  prevSlide() { this.goToSlide(Math.max(this.currentSlide - 1, 0)); }
+  goToSlide(idx) {
+    this.slides[idx].scrollIntoView({ behavior: "smooth" });
+    this.currentSlide = idx;
+  }
+
+  /* --- Touch/Swipe Nav --- */
+  setupTouchNav() {
+    let startX = 0, startY = 0;
+    document.addEventListener("touchstart", (e) => {
+      startX = e.changedTouches[0].screenX;
+      startY = e.changedTouches[0].screenY;
+    }, { passive: true });
+    document.addEventListener("touchend", (e) => {
+      const dx = e.changedTouches[0].screenX - startX;
+      const dy = e.changedTouches[0].screenY - startY;
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 50) {
+        dy > 0 ? this.prevSlide() : this.nextSlide();
+      }
+    }, { passive: true });
+  }
+
+  /* --- Mouse Wheel --- */
+  setupWheelNav() {
+    let ticking = false;
+    document.addEventListener("wheel", (e) => {
+      if (ticking) return;
+      ticking = true;
+      setTimeout(() => ticking = false, 600);
+      if (e.deltaY > 0) { this.nextSlide(); } else { this.prevSlide(); }
+    }, { passive: true });
+  }
+
+  /* --- Progress Bar --- */
+  setupProgressBar() {
+    this.progressFill = document.getElementById("progressFill");
+  }
+  updateProgress() {
+    const pct = (this.currentSlide / (this.slides.length - 1)) * 100;
+    this.progressFill.style.width = pct + "%";
+  }
+
+  /* --- Navigation Dots --- */
+  setupNavDots() {
+    this.navDotsContainer = document.getElementById("navDots");
+    this.navDotsContainer.innerHTML = "";
+    this.slides.forEach((_, i) => {
+      const dot = document.createElement("button");
+      dot.className = "nav-dot" + (i === 0 ? " active" : "");
+      dot.setAttribute("aria-label", "跳转到幻灯片 " + (i + 1));
+      dot.addEventListener("click", () => this.goToSlide(i));
+      this.navDotsContainer.appendChild(dot);
+    });
+  }
+  updateNavDots() {
+    const dots = this.navDotsContainer.querySelectorAll(".nav-dot");
+    dots.forEach((d, i) => d.classList.toggle("active", i === this.currentSlide));
+  }
+
+  /* --- Inline Editing --- */
+  setupEditing() {
+    this.editToggle = document.getElementById("editToggle");
+    this.editBanner = document.getElementById("editBanner");
+    const hotzone = document.getElementById("editHotzone");
+    let hideTimeout = null;
+
+    const show = () => { clearTimeout(hideTimeout); this.editToggle.classList.add("show"); };
+    const hide = () => {
+      hideTimeout = setTimeout(() => {
+        if (!this.isEditMode) this.editToggle.classList.remove("show");
+      }, 400);
+    };
+
+    hotzone.addEventListener("mouseenter", show);
+    hotzone.addEventListener("mouseleave", hide);
+    this.editToggle.addEventListener("mouseenter", () => clearTimeout(hideTimeout));
+    this.editToggle.addEventListener("mouseleave", hide);
+    hotzone.addEventListener("click", () => this.toggleEditMode());
+    this.editToggle.addEventListener("click", () => this.toggleEditMode());
+  }
+
+  toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  }
+
+  toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+    this.editToggle.classList.toggle("active", this.isEditMode);
+    this.editBanner.classList.toggle("active", this.isEditMode);
+    document.body.classList.toggle("edit-active", this.isEditMode);
+
+    if (this.isEditMode) {
+      // Make all text elements editable
+      document.querySelectorAll("h1, h2, h3, h4, p, .timeline-text, .slogan-text, .closing-slogan, .title-label, .title-sub, .title-tagline, .body-text, .slide-number").forEach(el => {
+        el.setAttribute("contenteditable", "true");
+      });
+      this.editToggle.textContent = "✓";
+    } else {
+      // Remove contenteditable
+      document.querySelectorAll("[contenteditable]").forEach(el => el.removeAttribute("contenteditable"));
+      this.editToggle.textContent = "✎";
+    }
+  }
+}
+
+/* --- Export on Ctrl+S --- */
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+    exportPresentation();
+  }
+});
+
+function exportPresentation() {
+  const editor = document.querySelector(".slide-presentation") || window;
+  const editableEls = Array.from(document.querySelectorAll("[contenteditable]"));
+  editableEls.forEach(el => el.removeAttribute("contenteditable"));
+  document.body.classList.remove("edit-active");
+  const toggle = document.getElementById("editToggle");
+  const banner = document.getElementById("editBanner");
+  toggle.classList.remove("active", "show");
+  banner.classList.remove("active");
+
+  const html = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+  document.body.classList.add("edit-active");
+  editableEls.forEach(el => el.setAttribute("contenteditable", "true"));
+  toggle.classList.add("active");
+  banner.classList.add("active");
+
+  const blob = new Blob([html], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "nongfu-spring-presentation.html";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+new SlidePresentation();
+</script>
+
+</body>
+</html>
