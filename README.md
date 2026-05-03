@@ -17,12 +17,13 @@
 
 ## 特性
 
+- **角色定义** - AGENT.md 独立管理角色定位、行为准则和约束
 - **多轮对话** - 记住对话上下文，连续聊天
 - **工具调用** - LLM 智能触发工具执行
-- **TUI 界面** - Textual 驱动的终端界面
+- **TUI 界面** - Textual 驱动的终端界面，支持 Markdown 渲染
 - **输入排队** - 处理中可随时输入，自动排队
+- **一键复制** - TUI 中按 `y` 复制最后回复到剪贴板
 - **插件系统** - Pipeline + Plugin，可扩展
-- **安全计算器** - 支持基本数学运算
 - **文件操作** - 读写、复制、移动、搜索
 
 ## 架构
@@ -83,15 +84,17 @@ python main.py --cli
 
 ```
 BaizePaw/
+├── AGENT.md               # 角色定义（使命/能力/约束/风格）
 ├── src/
 │   ├── core.py            # Core 核心循环，yield Event
 │   ├── conversation.py    # Conversation 桥接层（worker + queue）
 │   ├── pipeline.py        # Plugin 基类 + Pipeline
 │   ├── event.py           # Event 体系（ToolEvent/DoneEvent/ErrorEvent）
+│   ├── role.py            # 角色加载（load_role）
 │   ├── llm_client.py      # LLM API 调用
 │   ├── chat_history.py    # 对话历史管理
 │   ├── message.py         # 消息类型定义
-│   ├── prompts.py         # System prompt
+│   ├── prompts.py         # System prompt fallback
 │   ├── shell.py           # CLI 交互
 │   ├── tui/
 │   │   └── app.py         # Textual TUI
@@ -102,7 +105,7 @@ BaizePaw/
 │       ├── calculator.py  # 计算器
 │       ├── file_ops.py    # 文件操作
 │       └── search.py      # 搜索
-├── tests/                 # 单元测试
+├── tests/                 # 单元测试（41 项）
 ├── config.py              # 配置
 ├── main.py                # 入口
 └── docs/
@@ -138,6 +141,17 @@ PYTHONPATH=. pytest -v
 - DeepSeek API（Anthropic 兼容接口）
 - requests + python-dotenv
 - Textual（TUI）
+
+## 角色系统
+
+白泽的角色定义独立于代码，存放在 `AGENT.md` 中，包含四个维度：
+
+- **做什么（使命）** — 帮助用户管理本地文件和完成日常任务
+- **能做什么（能力）** — 文件读写、搜索、整理、批量处理
+- **不能做什么（约束）** — 安全边界、明确授权、诚实报告
+- **沟通风格** — 简洁、上下文感知、出错时解释
+
+修改 AGENT.md 即可调整角色行为，不需改代码。
 
 ## 学习资源
 
