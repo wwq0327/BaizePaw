@@ -86,13 +86,13 @@ class AgentRunner:
 
 解决：在 system prompt 里明确说明格式和用法，给示例。
 
-**坑 2：tool_call_id 400 错误**
+**坑 2：tool\_call\_id 400 错误**
 
 DeepSeek API 报：`Messages with role 'tool' must be a response to a preceding message with 'tool_calls'`
 
-原因：用 tool role 发工具结果时，API 要求前一条 assistant 消息包含对应的 tool_calls 字段。
+原因：用 tool role 发工具结果时，API 要求前一条 assistant 消息包含对应的 tool\_calls 字段。
 
-解决：给 assistant 消息加上 tool_calls 结构体：
+解决：给 assistant 消息加上 tool\_calls 结构体：
 
 ```python
 {
@@ -119,6 +119,7 @@ DeepSeek API 报：`Messages with role 'tool' must be a response to a preceding 
 ### 为什么重来
 
 v0.1 能跑，但代码集中在一个 AgentRunner 里：
+
 - 解析工具调用
 - 执行工具
 - 管理历史
@@ -131,6 +132,7 @@ v0.1 能跑，但代码集中在一个 AgentRunner 里：
 从问题出发：**关注点分离**。
 
 Agent 本质上做了三件事：
+
 1. 接收用户输入、展示结果（表现层）
 2. 控制对话流程、管理并发（桥接层）
 3. 调 LLM、执行工具、产出事件（核心层）
@@ -243,7 +245,7 @@ AGENT.md → load_role() → Core → Dispatcher → System Prompt
 
 ### 同时修复的细节
 
-**reasoning_content 400 错误**：DeepSeek thinking mode 在响应里带 `reasoning_content`，必须在下一次请求中传回。修复方式：`LLMClient.chat()` 返回 `ChatResponse` 对象（同时含 content 和 reasoning_content），`AssistantMessage.to_dict()` 条件包含。
+**reasoning\_content 400 错误**：DeepSeek thinking mode 在响应里带 `reasoning_content`，必须在下一次请求中传回。修复方式：`LLMClient.chat()` 返回 `ChatResponse` 对象（同时含 content 和 reasoning\_content），`AssistantMessage.to_dict()` 条件包含。
 
 **TUI 文本不能复制**：Textual RichLog 不支持文本选择，用 `y` 键 + `pbcopy` 实现一键复制。
 
@@ -270,6 +272,7 @@ AGENT.md → load_role() → Core → Dispatcher → System Prompt
 ```
 
 每次大变动都有：
+
 - ADR：为什么做、怎么选
 - Plan：分几步、每步做什么
 - DevLog：过程记录、踩坑总结
@@ -282,11 +285,11 @@ AGENT.md → load_role() → Core → Dispatcher → System Prompt
 
 ## 版本演变
 
-| 版本 | 核心变化 | 测试数 | 关键认知 |
-|------|---------|--------|---------|
-| v0.1 | 核心循环 + 工具调用 + 自创格式 | 15 | Agent = while(调LLM→解析→执行→循环) |
-| v0.2 | 三层架构 + Event + Pipeline + TUI | 29 | 先写单体能跑的，再拆出好架构 |
-| v0.3 | 角色系统 + reasoning + 复制 | 41 | 角色定义决定行为质量，细节影响体验 |
+| 版本   | 核心变化                          | 测试数 | 关键认知                         |
+| ---- | ----------------------------- | --- | ---------------------------- |
+| v0.1 | 核心循环 + 工具调用 + 自创格式            | 15  | Agent = while(调LLM→解析→执行→循环) |
+| v0.2 | 三层架构 + Event + Pipeline + TUI | 29  | 先写单体能跑的，再拆出好架构               |
+| v0.3 | 角色系统 + reasoning + 复制         | 41  | 角色定义决定行为质量，细节影响体验            |
 
 ---
 
@@ -296,3 +299,4 @@ AGENT.md → load_role() → Core → Dispatcher → System Prompt
 - [ ] 会话持久化
 - [ ] 多角色切换
 - [ ] 工具执行安全沙箱
+
