@@ -125,3 +125,25 @@ def test_filters_dsml_markup():
     assert isinstance(events[0], DoneEvent)
     assert "<<|" not in events[0].content
     assert "DSML" not in events[0].content
+
+
+def test_xml_multi_param_parsing():
+    """XML 格式支持多参数解析"""
+    mock_client = MagicMock()
+    xml = (
+        '<| | DSML | | tool_calls>\n'
+        '<| | DSML | | invoke name="progress_update">\n'
+        '<| | DSML | | parameter name="action" string="true">set_current<| | DSML | | parameter>\n'
+        '<| | DSML | | parameter name="name" string="true">认知吝啬鬼<| | DSML | | parameter>\n'
+        '</| | DSML | | invoke>\n'
+        '</| | DSML | | tool_calls>'
+    )
+    mock_client.chat.side_effect = [xml, "OK"]
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("test"))
+    assert len(events) == 2
+    assert isinstance(events[0], ToolEvent)
+    assert events[0].tool_name == "progress_update"
+    assert events[0].params.get("action") == "set_current"
+    assert events[0].params.get("name") == "认知吝啬鬼"

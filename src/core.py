@@ -65,7 +65,7 @@ class Core:
     def _extract_tool_call(response_str: str):
         """从响应中提取工具调用。返回 (tool_name, params_str, clean_response)。
 
-        支持【tool】格式和 XML <tool_call> 格式。XML 格式会被转换为
+        支持【tool】格式和 XML / DSML 变体格式。XML 格式会被转换为
         标准【tool】格式后存入 clean_response，避免 XML 污染历史记录。
         """
         # 优先匹配标准格式
@@ -75,21 +75,20 @@ class Core:
         if match:
             return match.group(1), match.group(2).strip(), response_str
 
-        # Fallback：匹配 XML <tool_call> 格式
-        xml_match = re.search(
-            r"<invoke\s+name=[\"'](\w+)[\"']\s*.*?"
-            r"<parameter\s+name=[\"'](\w+)[\"']\s*>(.*?)</parameter>.*?"
-            r"</invoke>",
-            response_str,
-            re.DOTALL,
-        )
-        if xml_match:
-            tool_name = xml_match.group(1)
-            param_name = xml_match.group(2)
-            param_value = xml_match.group(3).strip()
-            params_json = json.dumps({param_name: param_value}, ensure_ascii=False)
-            clean = f"【tool】{tool_name}【/tool】{params_json}"
-            return tool_name, params_json, clean
+        # Fallback：匹配 XML / DSML 变体格式（支持多参数）
+        invoke_match = re.search(r'invoke\s+name=["\'](\w+)["\']', response_str)
+        if invoke_match:
+            tool_name = invoke_match.group(1)
+            params = {}
+            for pm in re.finditer(
+                r'parameter\s+name=["\'](\w+)["\'](?:\s+\w+=["\'][^"\']+["\'])?\s*>([^<]+)',
+                response_str,
+            ):
+                params[pm.group(1)] = pm.group(2).strip()
+            if params:
+                params_json = json.dumps(params, ensure_ascii=False)
+                clean = f"【tool】{tool_name}【/tool】{params_json}"
+                return tool_name, params_json, clean
 
         return None, None, response_str
 
