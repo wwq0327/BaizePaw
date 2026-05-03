@@ -19,8 +19,8 @@ class ChatHistory:
         self.messages.append(AssistantMessage(content, reasoning_content))
         self._trim()
 
-    def add_tool_call(self, content: str, tool_name: str, arguments: str) -> str:
-        msg = ToolCallMessage(content, tool_name, arguments)
+    def add_tool_call(self, content: str, tool_name: str, arguments: str, reasoning_content: str = None) -> str:
+        msg = ToolCallMessage(content, tool_name, arguments, reasoning_content=reasoning_content)
         self.messages.append(msg)
         self._trim()
         return msg.tool_call_id

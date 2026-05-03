@@ -44,7 +44,7 @@ class Core:
 
                     args_json = json.dumps(params, ensure_ascii=False)
                     tool_call_id = self.history.add_tool_call(
-                        response_str, tool_name, args_json
+                        response_str, tool_name, args_json, reasoning_content=reasoning
                     )
 
                     tool_result = self.dispatcher.dispatch(tool_name, params)

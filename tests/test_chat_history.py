@@ -44,3 +44,27 @@ def test_get_context():
     assert isinstance(context[0], dict)
     assert context[0]["role"] == "user"
     assert context[1]["role"] == "assistant"
+
+
+def test_tool_call_with_reasoning_content():
+    history = ChatHistory()
+    history.add_tool_call(
+        '【tool】calculator【/tool】{"expr": "2+2"}',
+        "calculator",
+        '{"expr": "2+2"}',
+        reasoning_content="Let me calculate...",
+    )
+    context = history.get_context()
+    assert len(context) == 1
+    assert context[0]["reasoning_content"] == "Let me calculate..."
+
+
+def test_tool_call_without_reasoning_content():
+    history = ChatHistory()
+    history.add_tool_call(
+        '【tool】calculator【/tool】{"expr": "2+2"}',
+        "calculator",
+        '{"expr": "2+2"}',
+    )
+    context = history.get_context()
+    assert "reasoning_content" not in context[0]

@@ -35,18 +35,20 @@ class ToolCallMessage:
         tool_name: str,
         arguments: str,
         tool_call_id: Optional[str] = None,
+        reasoning_content: Optional[str] = None,
     ):
         self.content = content
         self.tool_name = tool_name
         self.arguments = arguments
         self._tool_call_id = tool_call_id or str(uuid.uuid4())
+        self.reasoning_content = reasoning_content
 
     @property
     def tool_call_id(self) -> str:
         return self._tool_call_id
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "role": self.role,
             "content": self.content,
             "tool_calls": [
@@ -60,6 +62,9 @@ class ToolCallMessage:
                 }
             ],
         }
+        if self.reasoning_content is not None:
+            d["reasoning_content"] = self.reasoning_content
+        return d
 
 
 class ToolResultMessage:
