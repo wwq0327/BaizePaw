@@ -28,7 +28,7 @@ class Core:
                 response_str = str(response)
                 reasoning = getattr(response, "reasoning_content", None)
 
-                tool_name, tool_params_str = self._extract_tool_call(response_str)
+                tool_name, tool_params_str, clean_response = self._extract_tool_call(response_str)
 
                 if tool_name:
                     try:
@@ -40,7 +40,7 @@ class Core:
 
                     args_json = json.dumps(params, ensure_ascii=False)
                     tool_call_id = self.history.add_tool_call(
-                        response_str, tool_name, args_json, reasoning_content=reasoning
+                        clean_response, tool_name, args_json, reasoning_content=reasoning
                     )
 
                     tool_result = self.dispatcher.dispatch(tool_name, params)
@@ -63,17 +63,21 @@ class Core:
 
     @staticmethod
     def _extract_tool_call(response_str: str):
-        """从响应中提取工具调用，支持【tool】格式和 XML <tool_call> 格式。"""
-        # 优先匹配我们的标准格式
+        """从响应中提取工具调用。返回 (tool_name, params_str, clean_response)。
+
+        支持【tool】格式和 XML <tool_call> 格式。XML 格式会被转换为
+        标准【tool】格式后存入 clean_response，避免 XML 污染历史记录。
+        """
+        # 优先匹配标准格式
         match = re.search(
             r"【tool】(\w+)【/tool】(.+?)(?=【|$)", response_str, re.DOTALL
         )
         if match:
-            return match.group(1), match.group(2).strip()
+            return match.group(1), match.group(2).strip(), response_str
 
         # Fallback：匹配 XML <tool_call> 格式
         xml_match = re.search(
-            r"<invoke\s+name=[\"'](\w+)[\"']\s*>.*?"
+            r"<invoke\s+name=[\"'](\w+)[\"']\s*.*?"
             r"<parameter\s+name=[\"'](\w+)[\"']\s*>(.*?)</parameter>.*?"
             r"</invoke>",
             response_str,
@@ -83,18 +87,19 @@ class Core:
             tool_name = xml_match.group(1)
             param_name = xml_match.group(2)
             param_value = xml_match.group(3).strip()
-            return tool_name, json.dumps({param_name: param_value}, ensure_ascii=False)
+            params_json = json.dumps({param_name: param_value}, ensure_ascii=False)
+            clean = f"【tool】{tool_name}【/tool】{params_json}"
+            return tool_name, params_json, clean
 
-        return None, None
+        return None, None, response_str
 
     @staticmethod
     def _clean_response(response_str: str) -> str:
         """过滤掉 content 中的内部标记和垃圾内容。"""
-        # 过滤 DSML / thinking 标记
         cleaned = re.sub(r"<\|.*?>", "", response_str)
-        # 过滤 XML 工具调用残留
+        cleaned = re.sub(r"</\|.*?>", "", cleaned)
         cleaned = re.sub(r"<tool_call>.*?</tool_call>", "", cleaned, flags=re.DOTALL)
-        cleaned = re.sub(r"<invoke>.*?</invoke>", "", cleaned, flags=re.DOTALL)
+        cleaned = re.sub(r"<invoke\b.*?</invoke>", "", cleaned, flags=re.DOTALL)
         return cleaned.strip()
 
     @staticmethod
