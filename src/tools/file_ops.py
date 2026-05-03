@@ -37,14 +37,17 @@ def _copy_file(src: str, dst: str) -> str:
 
 
 def _list_dir(path: str = ".") -> str:
-    cmd = ["ls", "-la", path]
+    if not os.path.exists(path):
+        return f"Directory not found: {path}"
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
-        if result.returncode != 0:
-            return f"Failed to list directory: {result.stderr.strip()}"
-        return result.stdout.strip()
-    except subprocess.TimeoutExpired:
-        return "Listing timed out"
+        entries = os.listdir(path)
+        # 过滤隐藏文件和常见无关目录
+        visible = [e for e in entries if not e.startswith(".")]
+        if not visible:
+            return "(empty)"
+        return "\n".join(visible)
+    except PermissionError:
+        return f"Permission denied: {path}"
     except Exception as e:
         return f"Listing error: {e}"
 

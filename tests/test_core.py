@@ -96,3 +96,32 @@ def test_core_with_custom_tools():
         core = Core(tools=[custom])
     assert "custom" in core.dispatcher.tools
     assert "calculator" not in core.dispatcher.tools
+
+
+def test_tool_xml_format_fallback():
+    """LLM 输出 XML 格式工具调用时也能解析"""
+    mock_client = MagicMock()
+    mock_client.chat.side_effect = [
+        '<tool_call>\n<invoke name="calculator">\n<parameter name="expr">2+2</parameter>\n</invoke>\n</tool_call>',
+        "The answer is 4",
+    ]
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("calc 2+2"))
+    assert len(events) == 2
+    assert isinstance(events[0], ToolEvent)
+    assert events[0].tool_name == "calculator"
+    assert isinstance(events[1], DoneEvent)
+
+
+def test_filters_dsml_markup():
+    """过滤 content 中的 <| | DSML |> 等内部标记"""
+    mock_client = MagicMock()
+    mock_client.chat.return_value = "Hello <| | DSML | | tool_calls> world"
+    core = _make_core(mock_client)
+
+    events = list(core.run_iter("Hi"))
+    assert len(events) == 1
+    assert isinstance(events[0], DoneEvent)
+    assert "<<|" not in events[0].content
+    assert "DSML" not in events[0].content
