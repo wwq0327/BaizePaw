@@ -74,12 +74,29 @@ Agent 反馈：对错、偏差、改进建议
 
 ### v0.4 — 知识库构建
 
-**目标**：把 PDF / Markdown 拆成结构化知识库
+**目标**：把一本书变成 LLM 维护的 interlinked markdown 知识库（按 LLM Wiki 模式）
 
-- 解析 PDF / Markdown 提取文本
-- 识别核心概念 + 知识点
-- 打散章节，按概念重组
-- 生成本地知识库文件（JSON 或其他结构）
+**Ingest 流程**：
+1. 用户把书（PDF/MD）放入 `knowledge/raw/`
+2. 触发 ingest：Agent 提取文本 → 识别知识点 → 每个知识点一个 md
+3. Agent 建交叉引用 → 写 index.md → 追加 log.md
+
+**产出结构**（pure markdown，git 可追踪）：
+```
+knowledge/
+├── raw/                          # Raw sources（不可变）
+│   └── python-handbook.pdf
+├── python-handbook/              # The wiki（Agent 维护）
+│   ├── index.md                  # 索引：所有知识点 + 一行摘要
+│   ├── log.md                    # 时间线：ingest / lint 记录
+│   ├── concepts/                 # 知识点页面
+│   │   ├── variables.md
+│   │   ├── functions.md
+│   │   └── ...
+│   ├── comparisons/              # 对比页（如 list-vs-tuple.md）
+│   └── synthesis.md              # 全书要点合成
+└── KNOWLEDGE_SCHEMA.md           # Schema：模板 + 命名约定 + 关联规则
+```
 
 **不包含**：教练对话、学习路径、用户状态追踪
 
@@ -95,8 +112,45 @@ Agent 反馈：对错、偏差、改进建议
 
 ---
 
+---
+
+## 知识库架构（基于 LLM Wiki 模式）
+
+参照 [LLM Wiki](https://github.com/tobi/llm-wiki) 的三层架构：
+
+```
+Raw Sources (不可变)     →  The Wiki (Agent 维护)    →  Schema (规则)
+    书 PDF / MD              markdown 文件集合           KNOWLEDGE_SCHEMA.md
+```
+
+### 三层映射
+
+| LLM Wiki 层                            | 读书教练实现                                        |
+| ------------------------------------- | --------------------------------------------- |
+| **Raw sources** — 原文不改                | 用户给的 PDF/Markdown 书，只读不写                      |
+| **The wiki** — LLM 维护的 interlinked md | `knowledge/{book}/` 知识点页面、概念页、index.md、log.md |
+| **The schema** — 规则约定                 | `KNOWLEDGE_SCHEMA.md` 定义页面模板、命名约定、关联规则        |
+
+### 三个操作
+
+| 操作         | 谁触发         | 谁执行   | 做什么                                  |
+| ---------- | ----------- | ----- | ------------------------------------ |
+| **Ingest** | 用户（"处理这本书"） | Agent | 拆知识点 → 建页面 → 写索引 → 建交叉引用 → 更新 log.md |
+| **Query**  | 用户（"我想学 X"） | Agent | 读 index.md → 定位知识点 → 生成学习路径 → 引导对话   |
+| **Lint**   | 用户（"检查知识库"） | Agent | 扫描矛盾、孤儿页、缺失引用、过期内容，给出修复建议            |
+
+### 关键原则
+
+- 用户做 curation + direction，Agent 做所有 bookkeeping
+- 知识库是累积的：第二本书可以合并进已有知识库，概念页自动更新
+- 知识库是文件系统：纯 markdown，git 版本控制，Obsidian 可浏览
+
+---
+
 ## 待讨论
 
-- 知识库存储格式（JSON / SQLite / 向量数据库）
-- PDF 解析方案（PyMuPDF / pdfplumber / marker）
-- 教练对话是否需要在现有 Conversation 模型上扩展，还是新建独立模块
+- 知识库目录结构约定（`knowledge/{book-name}/` vs 全局扁平）
+- Ingest 粒度：LLM 一次处理全章还是一次一个概念
+- PDF 解析方案（PyMuPDF / pdfplumber）
+- 教练对话是在现有 Conversation 模型上扩展还是独立模块
+
