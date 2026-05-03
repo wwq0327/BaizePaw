@@ -183,10 +183,13 @@ Raw Sources (不可变)     →  The Wiki (Agent 维护)    →  Schema (规则)
 
 ---
 
-## 待讨论
+## 技术决策（已确认）
 
-- 知识库目录结构约定（`knowledge/{book-name}/` vs 全局扁平）
-- Ingest 粒度：LLM 一次处理全章还是一次一个概念
-- PDF 解析方案（PyMuPDF / pdfplumber）
-- 教练对话是在现有 Conversation 模型上扩展还是独立模块
+| 决策        | 选择                               | 理由                         |
+| --------- | -------------------------------- | -------------------------- |
+| 目录结构      | **全局扁平** — `knowledge/concepts/` | 跨书概念自然合并                   |
+| Ingest 粒度 | **先列后拆** — 先扫全书出概念清单，用户确认后再逐个拆   | 符合教练主动引导理念                 |
+| PDF 解析    | **暂不支持** — v0.4 只处理 Markdown     | PDF 需求不紧迫                  |
+| 教练对话      | **独立模块** — `src/coach.py`        | 与 Conversation 解耦，独立管理对话循环 |
+| 记忆方案      | **文件优先** — JSON 会话 + progress.md | 当前量级不需要 Mem0/A-mem         |
 
