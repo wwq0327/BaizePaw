@@ -94,3 +94,17 @@ def test_coach_dispatches_knowledge_tool():
         tool_events = [e for e in events if hasattr(e, "tool_name")]
         assert len(tool_events) >= 1
         assert tool_events[0].tool_name == "knowledge_index"
+
+
+def test_coach_has_ingest_tools():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        mock_client = MagicMock()
+        mock_client.chat.return_value = "OK"
+        with patch("src.core.LLMClient", return_value=mock_client):
+            coach = Coach(knowledge_dir)
+        tool_names = set(coach.core.dispatcher.tools.keys())
+        assert "ingest_list_raw" in tool_names
+        assert "ingest_read_chunk" in tool_names
+        assert "ingest_write_concept" in tool_names
+        assert "ingest_log" in tool_names
