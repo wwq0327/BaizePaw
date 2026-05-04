@@ -43,7 +43,6 @@ def test_generate_system_prompt_without_role():
     prompt = dispatcher.generate_system_prompt()
     assert "白泽" in prompt
     assert "## 1. 做什么" in prompt
-    assert "【tool】" in prompt
 
 
 def test_generate_system_prompt_contains_param_hints():
@@ -73,13 +72,6 @@ def test_dispatcher_with_none_uses_defaults():
     dispatcher = ToolDispatcher(tools=None)
     assert "calculator" in dispatcher.tools
     assert "file_read" in dispatcher.tools
-
-
-def test_system_prompt_forbids_xml_format():
-    dispatcher = ToolDispatcher()
-    prompt = dispatcher.generate_system_prompt()
-    assert "禁止" in prompt or "不得" in prompt or "严禁" in prompt or "不要" in prompt
-    assert "XML" in prompt or "<tool" in prompt or "<invoke" in prompt
 
 
 def test_generate_tools_param_returns_openai_format():

@@ -83,15 +83,5 @@ class ToolDispatcher:
             lines.append(
                 f"- {tool.name}：{tool.description}。参数：{'，'.join(param_parts)}"
             )
-        lines.extend(
-            [
-                "",
-                '使用格式：【tool】工具名【/tool】{"参数名": "参数值"}',
-                "",
-                "重要约束：",
-                "- 调用工具时，回复中只能包含上述【tool】格式，严禁输出 XML、<tool_call>、<invoke>、<| 等标记",
-                "- 不调用工具时，回复中不得包含任何工具相关标记",
-                "- 不输出思考过程，需要调用工具就直接输出工具调用",
-            ]
-        )
+        lines.extend(["", "注意：请不要在非工具调用的回复中包含工具调用语法。"])
         return "\n".join(lines)
