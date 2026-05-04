@@ -51,6 +51,22 @@ class ToolDispatcher:
         except Exception as e:
             return f"Tool error: {e}"
 
+    def generate_tools_param(self) -> list:
+        """将已注册工具序列化为 OpenAI function calling tools 格式。"""
+        tools = []
+        for tool in self.tools.values():
+            tools.append(
+                {
+                    "type": "function",
+                    "function": {
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": tool.parameters,
+                    },
+                }
+            )
+        return tools
+
     def generate_system_prompt(self, role_prompt: str = None) -> str:
         if role_prompt is None:
             from ..role import load_role
