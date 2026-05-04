@@ -9,11 +9,12 @@ from .prompts import SYSTEM_PROMPT
 
 @dataclass
 class ChatResponse:
-    content: str
+    content: Optional[str] = None
     reasoning_content: Optional[str] = None
+    tool_calls: Optional[List[Dict]] = None
 
     def __str__(self):
-        return self.content
+        return self.content or ""
 
 
 class LLMClient:
@@ -24,6 +25,7 @@ class LLMClient:
         base_url: str = None,
         max_retries: int = 2,
         system_prompt: Optional[str] = None,
+        tools: Optional[List[Dict]] = None,
     ):
         from config import LLM_API_KEY, LLM_API_BASE, LLM_MODEL_NAME
 
@@ -32,8 +34,9 @@ class LLMClient:
         self.base_url = base_url or LLM_API_BASE
         self.max_retries = max_retries
         self.system_prompt = system_prompt
+        self.tools = tools
 
-    def chat(self, messages: List[Dict[str, str]], timeout: int = 30) -> str:
+    def chat(self, messages: List[Dict[str, str]], timeout: int = 30) -> ChatResponse:
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -44,6 +47,8 @@ class LLMClient:
         )
         all_messages = [{"role": "system", "content": system_content}] + messages
         payload = {"model": self.model, "messages": all_messages}
+        if self.tools:
+            payload["tools"] = self.tools
 
         last_error = None
         for attempt in range(self.max_retries + 1):
@@ -55,8 +60,9 @@ class LLMClient:
                 data = response.json()
                 msg = data["choices"][0]["message"]
                 return ChatResponse(
-                    content=msg["content"],
+                    content=msg.get("content"),
                     reasoning_content=msg.get("reasoning_content"),
+                    tool_calls=msg.get("tool_calls"),
                 )
 
             except requests.exceptions.Timeout:
@@ -80,4 +86,4 @@ class LLMClient:
                 wait = 2**attempt
                 time.sleep(wait)
 
-        return f"Error: {last_error}"
+        return ChatResponse(content=f"Error: {last_error}")

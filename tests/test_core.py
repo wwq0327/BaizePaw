@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from src.core import Core
 from src.event import DoneEvent, ErrorEvent, ToolEvent
+from src.llm_client import ChatResponse
 
 
 def _make_core(mock_client):
@@ -147,3 +148,23 @@ def test_xml_multi_param_parsing():
     assert events[0].tool_name == "progress_update"
     assert events[0].params.get("action") == "set_current"
     assert events[0].params.get("name") == "认知吝啬鬼"
+
+
+def test_chat_response_with_tool_calls():
+    tc = {
+        "id": "call_1",
+        "type": "function",
+        "function": {"name": "calculator", "arguments": '{"expr": "2+2"}'},
+    }
+    resp = ChatResponse(content=None, tool_calls=[tc])
+    assert resp.content is None
+    assert len(resp.tool_calls) == 1
+    assert resp.tool_calls[0]["function"]["name"] == "calculator"
+    assert str(resp) == ""
+
+
+def test_chat_response_without_tool_calls():
+    resp = ChatResponse(content="Hello!", tool_calls=None)
+    assert resp.content == "Hello!"
+    assert resp.tool_calls is None
+    assert str(resp) == "Hello!"
