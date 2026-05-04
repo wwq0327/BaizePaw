@@ -49,6 +49,24 @@ class Shell:
             self.active_conversation = self.chat_conversation
             print("[Switched to Chat mode]")
             return True
+        elif text == "/ingest":
+            self.mode = "coach"
+            if self.coach_conversation is None:
+                from .coach import Coach
+
+                knowledge_dir = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    "knowledge",
+                )
+                coach = Coach(knowledge_dir)
+                self.coach_conversation = Conversation(core=coach.core)
+                self.coach_conversation.start()
+            self.active_conversation = self.coach_conversation
+            self.active_conversation.submit(
+                "请开始 ingest 流程：用 ingest_list_raw 查看 raw/ 中的书，然后逐块读取并列出所有知识点。"
+            )
+            print("[Switched to Coach mode - Ingest started]")
+            return True
         return False
 
     def start(self):

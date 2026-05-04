@@ -33,3 +33,14 @@ def test_chat_command_switches_back():
         app._handle_command("/chat")
         assert app.mode == "chat"
         assert app.active_conversation is app.chat_conversation
+
+
+def test_ingest_command_switches_to_coach():
+    with patch("src.tui.app.Conversation") as MockConv:
+        mock_conv = MagicMock()
+        MockConv.return_value = mock_conv
+        app = BaizePawApp()
+        assert app.mode == "chat"
+        handled = app._handle_command("/ingest")
+        assert handled is True
+        assert app.mode == "coach"

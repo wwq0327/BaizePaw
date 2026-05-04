@@ -69,6 +69,25 @@ class BaizePawApp(App):
             self.active_conversation = self.chat_conversation
             self._update_status("Chat | /coach")
             return True
+        elif text == "/ingest":
+            self.mode = "coach"
+            if self.coach_conversation is None:
+                from ..coach import Coach
+                import os
+
+                knowledge_dir = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                    "knowledge",
+                )
+                coach = Coach(knowledge_dir)
+                self.coach_conversation = Conversation(core=coach.core)
+                self.coach_conversation.start()
+            self.active_conversation = self.coach_conversation
+            self.active_conversation.submit(
+                "请开始 ingest 流程：用 ingest_list_raw 查看 raw/ 中的书，然后逐块读取并列出所有知识点。"
+            )
+            self._update_status("Coach Ingest | /chat")
+            return True
         return False
 
     def _update_status(self, text: str):
