@@ -7,6 +7,7 @@ from src.knowledge.concept import create_concept
 from src.knowledge.index import add_to_index
 from src.knowledge.progress import init_progress
 from src.coach import Coach
+from src.llm_client import ChatResponse
 
 
 def _setup_knowledge(tmpdir):
@@ -72,7 +73,7 @@ def test_coach_run_iter_delegates_to_core():
     with tempfile.TemporaryDirectory() as tmpdir:
         knowledge_dir = _setup_knowledge(tmpdir)
         mock_client = MagicMock()
-        mock_client.chat.return_value = "Let's start learning!"
+        mock_client.chat.return_value = ChatResponse(content="Let's start learning!")
         with patch("src.core.LLMClient", return_value=mock_client):
             coach = Coach(knowledge_dir)
             events = list(coach.run_iter("Hello"))
@@ -85,8 +86,15 @@ def test_coach_dispatches_knowledge_tool():
         knowledge_dir = _setup_knowledge(tmpdir)
         mock_client = MagicMock()
         mock_client.chat.side_effect = [
-            '【tool】knowledge_index【/tool】{}',
-            "Here are the topics.",
+            ChatResponse(
+                content=None,
+                tool_calls=[{
+                    "id": "call_1",
+                    "type": "function",
+                    "function": {"name": "knowledge_index", "arguments": '{}'},
+                }],
+            ),
+            ChatResponse(content="Here are the topics."),
         ]
         with patch("src.core.LLMClient", return_value=mock_client):
             coach = Coach(knowledge_dir)
