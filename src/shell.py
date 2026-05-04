@@ -63,7 +63,12 @@ class Shell:
                 self.coach_conversation.start()
             self.active_conversation = self.coach_conversation
             self.active_conversation.submit(
-                "请开始 ingest 流程：用 ingest_list_raw 查看 raw/ 中的书，然后逐块读取并列出所有知识点。"
+                "开始 ingest 流程。严格按 Ingest 工作流第一阶段执行："
+                "1) 用 ingest_list_raw 查看有哪些书；"
+                "2) 用 ingest_read_chunk 每次只读一个 chunk，逐步扫描全书；"
+                "3) 每读一个 chunk 提取知识点名称；"
+                "4) 扫完后列出概念清单，等我确认后再进入拆分阶段。"
+                "重要：每次只调用一个工具，等返回结果后再决定下一步。"
             )
             print("[Switched to Coach mode - Ingest started]")
             return True

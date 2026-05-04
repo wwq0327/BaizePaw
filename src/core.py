@@ -36,7 +36,17 @@ class Core:
                         if not isinstance(params, dict):
                             raise ValueError("not a dict")
                     except (json.JSONDecodeError, ValueError):
-                        params = self._legacy_parse_params(tool_name, tool_params_str)
+                        # 尝试从 params_str 中提取纯 JSON 对象
+                        json_match = re.search(r'\{[^{}]*\}', tool_params_str)
+                        if json_match:
+                            try:
+                                params = json.loads(json_match.group(0))
+                                if not isinstance(params, dict):
+                                    raise ValueError("not a dict")
+                            except (json.JSONDecodeError, ValueError):
+                                params = self._legacy_parse_params(tool_name, tool_params_str)
+                        else:
+                            params = self._legacy_parse_params(tool_name, tool_params_str)
 
                     args_json = json.dumps(params, ensure_ascii=False)
                     tool_call_id = self.history.add_tool_call(
