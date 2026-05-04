@@ -3,6 +3,16 @@ import tempfile
 from unittest.mock import patch, MagicMock
 from src.knowledge import init_knowledge_dir
 from src.coach import Coach
+from src.llm_client import ChatResponse
+
+
+def _tc(name, arguments, call_id=None):
+    """构造 tool_calls 条目。"""
+    return {
+        "id": call_id or f"call_{name}",
+        "type": "function",
+        "function": {"name": name, "arguments": arguments},
+    }
 
 
 def test_ingest_e2e_with_mock_llm():
@@ -24,17 +34,17 @@ def test_ingest_e2e_with_mock_llm():
 
         # Phase 1: Scan
         scan_responses = [
-            '【tool】ingest_list_raw【/tool】{}',
-            '【tool】ingest_read_chunk【/tool】{"filename":"mini-book.md","chunk_index":0}',
-            '【tool】ingest_read_chunk【/tool】{"filename":"mini-book.md","chunk_index":1}',
-            'I found 2 concepts: rationality and cognitive-bias. Shall I proceed?',
+            ChatResponse(content=None, tool_calls=[_tc("ingest_list_raw", '{}')]),
+            ChatResponse(content=None, tool_calls=[_tc("ingest_read_chunk", '{"filename":"mini-book.md","chunk_index":0}')]),
+            ChatResponse(content=None, tool_calls=[_tc("ingest_read_chunk", '{"filename":"mini-book.md","chunk_index":1}')]),
+            ChatResponse(content="I found 2 concepts: rationality and cognitive-bias. Shall I proceed?"),
         ]
         # Phase 2: Write
         write_responses = [
-            '【tool】ingest_write_concept【/tool】{"name":"rationality","summary":"Thinking based on reason","content":"Rationality is the ability to think based on reason rather than emotion."}',
-            '【tool】ingest_write_concept【/tool】{"name":"cognitive-bias","summary":"Systematic deviation from rationality","content":"Cognitive biases are systematic patterns of deviation from rationality in judgment."}',
-            '【tool】ingest_log【/tool】{"operation":"ingest_complete","source":"mini-book.md","detail":"Extracted 2 concepts: rationality, cognitive-bias"}',
-            'Ingest complete! Created 2 concept pages.',
+            ChatResponse(content=None, tool_calls=[_tc("ingest_write_concept", '{"name":"rationality","summary":"Thinking based on reason","content":"Rationality is the ability to think based on reason rather than emotion."}')]),
+            ChatResponse(content=None, tool_calls=[_tc("ingest_write_concept", '{"name":"cognitive-bias","summary":"Systematic deviation from rationality","content":"Cognitive biases are systematic patterns of deviation from rationality in judgment."}')]),
+            ChatResponse(content=None, tool_calls=[_tc("ingest_log", '{"operation":"ingest_complete","source":"mini-book.md","detail":"Extracted 2 concepts: rationality, cognitive-bias"}')]),
+            ChatResponse(content="Ingest complete! Created 2 concept pages."),
         ]
         mock_client.chat.side_effect = scan_responses + write_responses
 

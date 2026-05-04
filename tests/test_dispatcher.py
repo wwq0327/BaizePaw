@@ -43,7 +43,6 @@ def test_generate_system_prompt_without_role():
     prompt = dispatcher.generate_system_prompt()
     assert "白泽" in prompt
     assert "## 1. 做什么" in prompt
-    assert "【tool】" in prompt
 
 
 def test_generate_system_prompt_contains_param_hints():
@@ -75,8 +74,34 @@ def test_dispatcher_with_none_uses_defaults():
     assert "file_read" in dispatcher.tools
 
 
-def test_system_prompt_forbids_xml_format():
+def test_generate_tools_param_returns_openai_format():
     dispatcher = ToolDispatcher()
-    prompt = dispatcher.generate_system_prompt()
-    assert "禁止" in prompt or "不得" in prompt or "严禁" in prompt or "不要" in prompt
-    assert "XML" in prompt or "<tool" in prompt or "<invoke" in prompt
+    tools_param = dispatcher.generate_tools_param()
+    assert isinstance(tools_param, list)
+    assert len(tools_param) > 0
+    first = tools_param[0]
+    assert first["type"] == "function"
+    assert "name" in first["function"]
+    assert "description" in first["function"]
+    assert "parameters" in first["function"]
+
+
+def test_generate_tools_param_matches_registered_tools():
+    from src.tools.tool_base import Tool
+
+    custom = Tool(
+        name="my_tool",
+        description="Does something",
+        parameters={
+            "type": "object",
+            "properties": {"x": {"type": "string", "description": "input"}},
+            "required": ["x"],
+        },
+        fn=lambda x: x,
+    )
+    dispatcher = ToolDispatcher(tools=[custom])
+    tools_param = dispatcher.generate_tools_param()
+    assert len(tools_param) == 1
+    assert tools_param[0]["function"]["name"] == "my_tool"
+    assert tools_param[0]["function"]["description"] == "Does something"
+    assert tools_param[0]["function"]["parameters"]["required"] == ["x"]
