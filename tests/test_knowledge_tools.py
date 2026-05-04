@@ -22,17 +22,21 @@ def _setup_knowledge(tmpdir):
     return knowledge_dir
 
 
-def test_create_knowledge_tools_returns_list():
+def test_create_knowledge_tools_returns_eight_tools():
     with tempfile.TemporaryDirectory() as tmpdir:
         knowledge_dir = _setup_knowledge(tmpdir)
         tools = create_knowledge_tools(knowledge_dir)
         assert isinstance(tools, list)
-        assert len(tools) == 4
+        assert len(tools) == 8
         names = [t.name for t in tools]
         assert "knowledge_index" in names
         assert "knowledge_concept" in names
         assert "progress_read" in names
         assert "progress_update" in names
+        assert "ingest_list_raw" in names
+        assert "ingest_read_chunk" in names
+        assert "ingest_write_concept" in names
+        assert "ingest_log" in names
 
 
 def test_knowledge_index_tool():
@@ -94,3 +98,85 @@ def test_progress_update_tool_mark_mastered():
         update_tool.fn(action="set_current", name="variables")
         result = update_tool.fn(action="mark_mastered", name="variables")
         assert "variables" in result
+
+
+def test_ingest_list_raw_tool():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        raw_dir = os.path.join(knowledge_dir, "raw")
+        with open(os.path.join(raw_dir, "test-book.md"), "w") as f:
+            f.write("# Test Book\n\nContent here.")
+        tools = create_knowledge_tools(knowledge_dir)
+        list_tool = next(t for t in tools if t.name == "ingest_list_raw")
+        result = list_tool.fn()
+        assert "test-book.md" in result
+
+
+def test_ingest_list_raw_empty():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        tools = create_knowledge_tools(knowledge_dir)
+        list_tool = next(t for t in tools if t.name == "ingest_list_raw")
+        result = list_tool.fn()
+        assert "no markdown" in result.lower() or "empty" in result.lower() or "未找到" in result
+
+
+def test_ingest_read_chunk_tool():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        raw_dir = os.path.join(knowledge_dir, "raw")
+        with open(os.path.join(raw_dir, "test-book.md"), "w") as f:
+            f.write("# Book\n\n## Chapter 1\n\n### Alpha\n\nAlpha content.\n\n### Beta\n\nBeta content.\n")
+        tools = create_knowledge_tools(knowledge_dir)
+        read_tool = next(t for t in tools if t.name == "ingest_read_chunk")
+        result = read_tool.fn(filename="test-book.md", chunk_index=1)
+        assert "Beta" in result
+
+
+def test_ingest_read_chunk_out_of_range():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        raw_dir = os.path.join(knowledge_dir, "raw")
+        with open(os.path.join(raw_dir, "test-book.md"), "w") as f:
+            f.write("# Book\n\n## Chapter 1\n\n### Alpha\n\nAlpha content.\n")
+        tools = create_knowledge_tools(knowledge_dir)
+        read_tool = next(t for t in tools if t.name == "ingest_read_chunk")
+        result = read_tool.fn(filename="test-book.md", chunk_index=99)
+        assert "out of range" in result.lower() or "超出" in result
+
+
+def test_ingest_write_concept_tool():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        tools = create_knowledge_tools(knowledge_dir)
+        write_tool = next(t for t in tools if t.name == "ingest_write_concept")
+        result = write_tool.fn(
+            name="rational-thinking",
+            summary="The ability to think and act rationally",
+            content="Rational thinking is the ability to think based on reason.",
+        )
+        assert "rational-thinking" in result or "created" in result.lower() or "创建" in result
+        concept_tool = next(t for t in tools if t.name == "knowledge_concept")
+        concept = concept_tool.fn(name="rational-thinking")
+        assert "Rational thinking" in concept
+        index_tool = next(t for t in tools if t.name == "knowledge_index")
+        index = index_tool.fn()
+        assert "rational-thinking" in index
+
+
+def test_ingest_log_tool():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        knowledge_dir = _setup_knowledge(tmpdir)
+        tools = create_knowledge_tools(knowledge_dir)
+        log_tool = next(t for t in tools if t.name == "ingest_log")
+        result = log_tool.fn(
+            operation="ingest",
+            source="test-book.md",
+            detail="Extracted 5 concepts",
+        )
+        assert "ingest" in result.lower() or "记录" in result
+        log_path = os.path.join(knowledge_dir, "log.md")
+        assert os.path.exists(log_path)
+        with open(log_path) as f:
+            content = f.read()
+        assert "test-book.md" in content
