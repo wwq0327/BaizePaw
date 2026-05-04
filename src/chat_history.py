@@ -1,3 +1,4 @@
+from typing import Optional
 from .message import (
     AssistantMessage,
     ToolCallMessage,
@@ -19,8 +20,8 @@ class ChatHistory:
         self.messages.append(AssistantMessage(content, reasoning_content))
         self._trim()
 
-    def add_tool_call(self, content: str, tool_name: str, arguments: str, reasoning_content: str = None) -> str:
-        msg = ToolCallMessage(content, tool_name, arguments, reasoning_content=reasoning_content)
+    def add_tool_call(self, content: Optional[str], tool_name: str, arguments: str, reasoning_content: str = None, tool_call_id: str = None) -> str:
+        msg = ToolCallMessage(content, tool_name, arguments, tool_call_id=tool_call_id, reasoning_content=reasoning_content)
         self.messages.append(msg)
         self._trim()
         return msg.tool_call_id

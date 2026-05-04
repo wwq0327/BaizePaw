@@ -31,7 +31,7 @@ class ToolCallMessage:
 
     def __init__(
         self,
-        content: str,
+        content: Optional[str],
         tool_name: str,
         arguments: str,
         tool_call_id: Optional[str] = None,
