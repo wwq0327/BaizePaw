@@ -5,6 +5,15 @@ from src.event import DoneEvent, ErrorEvent, ToolEvent
 from src.llm_client import ChatResponse
 
 
+def _tool_call(name, arguments, call_id=None):
+    """构造 OpenAI tool_calls 条目。"""
+    return {
+        "id": call_id or f"call_{name}",
+        "type": "function",
+        "function": {"name": name, "arguments": arguments},
+    }
+
+
 def _make_core(mock_client):
     with patch("src.core.LLMClient", return_value=mock_client):
         return Core()
@@ -12,7 +21,7 @@ def _make_core(mock_client):
 
 def test_no_tool_yields_done():
     mock_client = MagicMock()
-    mock_client.chat.return_value = "Hello!"
+    mock_client.chat.return_value = ChatResponse(content="Hello!")
     core = _make_core(mock_client)
 
     events = list(core.run_iter("Hi"))
@@ -24,8 +33,11 @@ def test_no_tool_yields_done():
 def test_tool_then_done():
     mock_client = MagicMock()
     mock_client.chat.side_effect = [
-        '【tool】calculator【/tool】{"expr": "2+2"}',
-        "The answer is 4",
+        ChatResponse(
+            content=None,
+            tool_calls=[_tool_call("calculator", '{"expr": "2+2"}')],
+        ),
+        ChatResponse(content="The answer is 4"),
     ]
     core = _make_core(mock_client)
 
@@ -33,25 +45,34 @@ def test_tool_then_done():
     assert len(events) == 2
     assert isinstance(events[0], ToolEvent)
     assert events[0].tool_name == "calculator"
+    assert events[0].params == {"expr": "2+2"}
     assert isinstance(events[1], DoneEvent)
     assert "4" in events[1].content
 
 
-def test_raw_tool_text_not_in_events():
-    """LLM 原始含【tool】的文本不出现在 Event 中"""
+def test_multiple_tool_calls_in_one_response():
     mock_client = MagicMock()
     mock_client.chat.side_effect = [
-        '【tool】calculator【/tool】{"expr": "1+1"}',
-        "Done",
+        ChatResponse(
+            content=None,
+            tool_calls=[
+                _tool_call("calculator", '{"expr": "1+1"}'),
+                _tool_call("calculator", '{"expr": "2+2"}'),
+            ],
+        ),
+        ChatResponse(content="Done"),
     ]
     core = _make_core(mock_client)
 
-    events = list(core.run_iter("test"))
-    for ev in events:
-        if isinstance(ev, DoneEvent):
-            assert "【tool】" not in ev.content
-        if isinstance(ev, ToolEvent):
-            assert "【tool】" not in ev.tool_name
+    events = list(core.run_iter("calc"))
+    assert len(events) == 3
+    assert isinstance(events[0], ToolEvent)
+    assert events[0].tool_name == "calculator"
+    assert events[0].params == {"expr": "1+1"}
+    assert isinstance(events[1], ToolEvent)
+    assert events[1].tool_name == "calculator"
+    assert events[1].params == {"expr": "2+2"}
+    assert isinstance(events[2], DoneEvent)
 
 
 def test_error_yields_error_event():
@@ -74,7 +95,7 @@ def test_core_with_custom_role_path():
 
     try:
         mock_client = MagicMock()
-        mock_client.chat.return_value = "OK"
+        mock_client.chat.return_value = ChatResponse(content="OK")
         with patch("src.core.LLMClient", return_value=mock_client):
             core = Core(role_path=role_path)
         assert "Custom Role" in core.role_prompt
@@ -92,62 +113,30 @@ def test_core_with_custom_tools():
         fn=lambda: "custom",
     )
     mock_client = MagicMock()
-    mock_client.chat.return_value = "OK"
+    mock_client.chat.return_value = ChatResponse(content="OK")
     with patch("src.core.LLMClient", return_value=mock_client):
         core = Core(tools=[custom])
     assert "custom" in core.dispatcher.tools
     assert "calculator" not in core.dispatcher.tools
 
 
-def test_tool_xml_format_fallback():
-    """LLM 输出 XML 格式工具调用时也能解析"""
+def test_tool_call_id_preserved_in_history():
     mock_client = MagicMock()
     mock_client.chat.side_effect = [
-        '<tool_call>\n<invoke name="calculator">\n<parameter name="expr">2+2</parameter>\n</invoke>\n</tool_call>',
-        "The answer is 4",
+        ChatResponse(
+            content=None,
+            tool_calls=[_tool_call("calculator", '{"expr": "2+2"}', "call_abc")],
+        ),
+        ChatResponse(content="Done"),
     ]
     core = _make_core(mock_client)
 
-    events = list(core.run_iter("calc 2+2"))
-    assert len(events) == 2
-    assert isinstance(events[0], ToolEvent)
-    assert events[0].tool_name == "calculator"
-    assert isinstance(events[1], DoneEvent)
+    list(core.run_iter("calc"))
+    from src.message import ToolCallMessage
 
-
-def test_filters_dsml_markup():
-    """过滤 content 中的 <| | DSML |> 等内部标记"""
-    mock_client = MagicMock()
-    mock_client.chat.return_value = "Hello <| | DSML | | tool_calls> world"
-    core = _make_core(mock_client)
-
-    events = list(core.run_iter("Hi"))
-    assert len(events) == 1
-    assert isinstance(events[0], DoneEvent)
-    assert "<<|" not in events[0].content
-    assert "DSML" not in events[0].content
-
-
-def test_xml_multi_param_parsing():
-    """XML 格式支持多参数解析"""
-    mock_client = MagicMock()
-    xml = (
-        '<| | DSML | | tool_calls>\n'
-        '<| | DSML | | invoke name="progress_update">\n'
-        '<| | DSML | | parameter name="action" string="true">set_current<| | DSML | | parameter>\n'
-        '<| | DSML | | parameter name="name" string="true">认知吝啬鬼<| | DSML | | parameter>\n'
-        '</| | DSML | | invoke>\n'
-        '</| | DSML | | tool_calls>'
-    )
-    mock_client.chat.side_effect = [xml, "OK"]
-    core = _make_core(mock_client)
-
-    events = list(core.run_iter("test"))
-    assert len(events) == 2
-    assert isinstance(events[0], ToolEvent)
-    assert events[0].tool_name == "progress_update"
-    assert events[0].params.get("action") == "set_current"
-    assert events[0].params.get("name") == "认知吝啬鬼"
+    tc_msgs = [m for m in core.history.messages if isinstance(m, ToolCallMessage)]
+    assert len(tc_msgs) == 1
+    assert tc_msgs[0].tool_call_id == "call_abc"
 
 
 def test_chat_response_with_tool_calls():
